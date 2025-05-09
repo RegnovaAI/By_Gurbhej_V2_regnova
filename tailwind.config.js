@@ -1,41 +1,16 @@
-// module.exports = {
-//   content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
-//   // theme: {
-//   //   extend: {},
-//   // },
-//   // plugins: [],
-//  // Added on 6th may change look.
-
-//   theme: {
-//     extend: {
-//       colors: {
-//         primary: '#3B82F6', // tailwind blue
-//         accent: '#9333EA',  // violet
-//       },
-//       fontFamily: {
-//         sans: ['Inter', 'sans-serif'],
-//       },
-//     },
-//   },
-  
-// };
-
-
-
-
-
-
-
-
-// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./pages/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
-  theme: {
-    extend: {
-      backgroundImage: {
-        'regnova-bg': "url('/bg-hero.jpg')",
+    content: [
+      "./app/**/*.{js,ts,jsx,tsx}",
+      "./pages/**/*.{js,ts,jsx,tsx}",
+      "./components/**/*.{js,ts,jsx,tsx}",
+    ],
+    theme: {
+      extend: {
+        colors: {
+            bluish: '#3e5074'
+          },
       },
     },
-  },
-  plugins: [],
-}
+    plugins: [],
+  };
