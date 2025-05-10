@@ -67,7 +67,7 @@
 //     ];
 
 //     setSelectedFile({ name: "Demo_Document.pdf" });
-//     setRiskReport(demoRisks) 
+//     setRiskReport(demoRisks);
 //   };
 
 //   const { getRootProps, getInputProps, isDragActive } = useDropzone({

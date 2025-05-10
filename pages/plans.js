@@ -54,15 +54,25 @@ export default function Plans() {
               <h2 className="text-2xl text-white font-bold text-gray-800 mb-4 text-center">
                 {plan.title}
               </h2>
-              <p className="text-sm text-white font-normal text-[#000f26] mb-6 text-center">
+              <p className="text-lg text-white font-normal text-[#000f26] mb-6 text-center">
                 {plan.content}
               </p>
-              <p className="text-sm text-white font-normal text-[#000f26] mb-6 text-center">
-                <span className="font-bold">Monthly:</span> €{plan.monthPrice}
-                <br />
-                <span className="font-bold">Yearly:</span>{" "}
-                €{plan.monthPrice * 10}
-              </p>
+              <div className="flex flex-col items-center mb-6">
+                <div>
+                  <p className="text-lg text-white flex font-normal text-[#000f26] mb-0">
+                    <strong className="font-bold min-w-24 text-start">
+                      Monthly:
+                    </strong>{" "}
+                    €{plan.monthPrice}
+                  </p>
+                  <p className="text-lg text-white flex font-normal text-[#000f26] mb-6">
+                    <strong className="font-bold min-w-24 text-start">
+                      Yearly:
+                    </strong>{" "}
+                    €{plan.monthPrice * 10}
+                  </p>
+                </div>
+              </div>
               <button className="bg-[#9135e2] text-white py-2 px-6 rounded-lg font-semibold cursor-pointer transition-colors">
                 Select This Plan
               </button>

@@ -14,7 +14,7 @@ export default function Header() {
 
   return (
     <header className="absolute  w-full text-white px-4 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="max-w-[1440px] mx-auto flex items-center justify-between">
         {/* Left: Icon */}
         <div className="flex items-center">
         <Link href="/" onClick={() => handleRouteChange()}>
@@ -22,21 +22,21 @@ export default function Header() {
           src="/regnovaai-logo.png"
           alt="RegnovaAI Logo"
           className="mx-auto"
-          width="80"
-          height="80"
+          width="120"
+          height="120"
         />
         </Link>
         </div>
 
         {/* Right: Links */}
         <nav className="hidden md:flex space-x-6">
-          <Link href="/" onClick={() => handleRouteChange()} className="hover:text-blue-300">Home</Link>
-          <Link href="/aboutus" className="hover:text-blue-300">About us</Link>
-          <Link href="/mission" className="hover:text-blue-300">Mission</Link>
-          <Link href="/vision" className="hover:text-blue-300">Vision</Link>
-          <Link href="/career" className="hover:text-blue-300">Career</Link>
-          <Link href="/plans" className="hover:text-blue-300">Pricing</Link>
-          <Link href="/login" className="hover:text-blue-300">Log in</Link>
+          <Link href="/" onClick={() => handleRouteChange()} className="hover:text-blue-300 text-lg">Home</Link>
+          <Link href="/aboutus" className="hover:text-blue-300 text-lg">About us</Link>
+          <Link href="/mission" className="hover:text-blue-300 text-lg">Mission</Link>
+          <Link href="/vision" className="hover:text-blue-300 text-lg">Vision</Link>
+          <Link href="/career" className="hover:text-blue-300 text-lg">Career</Link>
+          <Link href="/plans" className="hover:text-blue-300 text-lg">Pricing</Link>
+          <Link href="/login" className="hover:text-blue-300 text-lg">Log in</Link>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -64,14 +64,14 @@ export default function Header() {
 
       {/* Mobile Links */}
       {isMobileMenuOpen && (
-        <nav className="md:hidden mt-3 space-y-2 text-center bg-[#3e5074]">
-          <Link href="/" className="hover:text-blue-300">Home</Link>
-          <Link href="/features" className="hover:text-blue-300">About us</Link>
-          <Link href="/features" className="hover:text-blue-300">Mission</Link>
-          <Link href="/features" className="hover:text-blue-300">Vision</Link>
-          <Link href="/features" className="hover:text-blue-300">Career</Link>
-          <Link href="/plans" className="hover:text-blue-300">Pricing</Link>
-          <Link href="/login" className="hover:text-blue-300">Log in</Link>
+        <nav className="md:hidden flex flex-col p-3 mt-3 space-y-2 text-center bg-[#3e5074]">
+          <Link href="/" className="hover:text-blue-300 text-lg">Home</Link>
+          <Link href="/features" className="hover:text-blue-300 text-lg">About us</Link>
+          <Link href="/features" className="hover:text-blue-300 text-lg">Mission</Link>
+          <Link href="/features" className="hover:text-blue-300 text-lg">Vision</Link>
+          <Link href="/features" className="hover:text-blue-300 text-lg">Career</Link>
+          <Link href="/plans" className="hover:text-blue-300 text-lg">Pricing</Link>
+          <Link href="/login" className="hover:text-blue-300 text-lg">Log in</Link>
         </nav>
       )}
     </header>
