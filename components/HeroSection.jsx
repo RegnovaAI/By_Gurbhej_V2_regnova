@@ -18,7 +18,7 @@ export default function HeroSection() {
 
   return (
     <div className="mt-8 flex items-center justify-center text-center text-xl font-normal transition-all duration-700 ease-in-out">
-      <p className="opacity-90 animate-fadeIn">{messages[index]}</p>
+      <p className="soft-landing">{messages[index]}</p>
     </div>
   );
 }

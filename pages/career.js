@@ -27,10 +27,10 @@ export default function Career() {
       }}
     >
       <div className="max-w-3xl mx-auto text-center">
-        <h3 className="mb-6 text-5xl font-extrabold tracking-tight">
+        <h3 className="mb-6 text-2xl lg:text-4xl font-extrabold tracking-tight">
           Join Our Team
         </h3>
-        <p className="mb-8 text-lg leading-relaxed text-gray-300">
+        <p className="mb-8 lg:text-lg leading-relaxed text-gray-300">
           Be part of something amazing. Upload your resume and apply for exciting opportunities to shape the future with us.
         </p>
         <form

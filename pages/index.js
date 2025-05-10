@@ -507,7 +507,7 @@ export default function UploadPage() {
         /> */}
 
         <main style={{ minHeight: "calc(100vh - 400px)", }}>
-          <div className="space-y-3 mb-12">
+          <div className="space-y-3 mb-20">
             <h1 className="text-2xl sm:text-4xl font-bold">
               Welcome to RegnovaAI
             </h1>

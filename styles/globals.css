@@ -40,4 +40,28 @@ body {
   animation: pulse-bg 1s infinite;
 }
 
+/* @keyframes softLanding {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes flashColor {
+  0%, 100% {
+    color: #ff4500;
+  }
+  50% {
+    color: #ffffff;
+  }
+}
+
+.soft-landing {
+  animation: softLanding 0.7s ease-out, flashColor 1.5s infinite;
+} */
+
 
