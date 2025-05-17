@@ -517,6 +517,28 @@ export default function UploadPage() {
           </p> */}
             <HeroSection />
           </div>
+
+
+
+
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                {auditOptions.map((audit) => (
+                  <label key={audit} className="flex items-center space-x-2">
+                   <input
+                  type="checkbox"
+                    checked={selectedAudits.includes(audit)}
+                   onChange={() => handleAuditToggle(audit)}
+                 />
+                  <span>{audit}</span>
+                 </label>
+                  ))}
+                 </div>
+
+
+
+
+
+
           {selectAuditOption && (
             <div className="max-w-2xl mx-auto">
               <h3 className="mb-5 text-2xl">Select Audit Types</h3>

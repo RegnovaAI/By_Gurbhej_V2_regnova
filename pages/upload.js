@@ -219,6 +219,8 @@ import RiskCard from '../components/RiskCard';
 import { generatePDFReport } from '../utils/generatePDF';
 import { generateCSV } from '../utils/generateCSV';
 
+
+
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [riskReport, setRiskReport] = useState([]);
@@ -232,6 +234,7 @@ export default function UploadPage() {
 
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("audits", selectedAudits.join(","));  //test for milestone update. on
 
       try {
         const response = await fetch("https://regnovaai-backend.onrender.com/upload/", {
@@ -389,6 +392,50 @@ export default function UploadPage() {
     </div>
   );
 }
+
+
+
+
+
+import { useState } from 'react';
+
+export default function AuditSelector({ onChange }) {
+  const auditOptions = [
+    'SOC 1', 'SOC 2', 'SOX', 'PCI-DSS',
+    'HIPAA', 'GDPR', 'FedRAMP', 'ISO 27001'
+  ];
+
+  const [selectedAudits, setSelectedAudits] = useState([]);
+
+  const handleAuditToggle = (audit) => {
+    const updated = selectedAudits.includes(audit)
+      ? selectedAudits.filter((a) => a !== audit)
+      : [...selectedAudits, audit];
+
+    setSelectedAudits(updated);
+    onChange(updated); // Send to parent component
+  };
+
+  return (
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold mb-2">Select Audit Types:</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {auditOptions.map((audit) => (
+          <label key={audit} className="flex items-center space-x-2 text-sm">
+            <input
+              type="checkbox"
+              checked={selectedAudits.includes(audit)}
+              onChange={() => handleAuditToggle(audit)}
+              className="accent-blue-500"
+            />
+            <span>{audit}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 
 
