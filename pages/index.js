@@ -16,6 +16,7 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [selectAuditOption, setSelectAuditOption] = useState(true);
   const [selectedAuditTypes, setSelectedAuditTypes] = useState([]);
+  const [errorText, setErrorText] = useState("");
 
   const toggleAuditType = (auditType) => {
     setSelectedAuditTypes(
@@ -24,6 +25,7 @@ export default function UploadPage() {
           ? prevSelected.filter((type) => type !== auditType) // Unselect
           : [...prevSelected, auditType] // Select
     );
+    setErrorText("")
   };
 
   const onDrop = useCallback(async (acceptedFiles) => {
@@ -175,20 +177,17 @@ export default function UploadPage() {
 
 
               
-              <div className="flex justify-center mt-4 gap-2 mt-8">
+                <div className="flex justify-center mt-4 gap-2 mt-8">
                 <button
                   onClick={() => {
                     if (selectedAuditTypes.length === 0) {
-                      alert("Please select at least one audit type.");
+                      setErrorText("Please select at least one audit type.");
                       return;
                     }
                     setSelectAuditOption(false);
                     setRiskReport([]);
                     setSelectedFile(null);
                   }}
-
-                  
-
                   className="px-4 py-2 cursor-pointer  border border-[#3e5074] bg-[#0e1543] text-white rounded-xl transition"
                 >
                   Get Started
@@ -200,8 +199,11 @@ export default function UploadPage() {
                   Try Demo File
                 </button>
               </div>
+              {errorText && (
+                <p className="text-red-500 text-sm mt-2">{errorText}</p>
+              )}
             </div>
-          )}
+              )}
 
           {!selectAuditOption && (
             <>
