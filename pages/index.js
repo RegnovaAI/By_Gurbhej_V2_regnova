@@ -160,7 +160,7 @@ export default function UploadPage() {
                         value={auditType}
                         checked={isChecked}
                         onChange={() => toggleAuditType(auditType)}
-                        className="form-checkbox w-5 h-5"
+                        className="form-checkbox w-5 h-5 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <label
                         htmlFor={`checkbox-${auditType}`}
