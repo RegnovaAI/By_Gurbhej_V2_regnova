@@ -9,7 +9,7 @@ import { auditTypes } from "@/utils/constant";
 import HeroSection from "@/components/HeroSection";
 
 export default function UploadPage() {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState([]);
   const [riskReport, setRiskReport] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [selectAuditOption, setSelectAuditOption] = useState(true);
@@ -17,64 +17,75 @@ export default function UploadPage() {
   const [errorText, setErrorText] = useState("");
 
   const toggleAuditType = (auditType) => {
-    setSelectedAuditTypes(
-      (prevSelected) =>
-        prevSelected.includes(auditType)
-          ? prevSelected.filter((type) => type !== auditType) // Unselect
-          : [...prevSelected, auditType] // Select
+    setSelectedAuditTypes((prevSelected) =>
+      prevSelected.includes(auditType)
+        ? prevSelected.filter((type) => type !== auditType)
+        : [...prevSelected, auditType]
     );
     setErrorText("");
   };
 
-  console.log("Selected Audit Types:", selectedAuditTypes);
+  const removeAuditType = (auditType) => {
+    setSelectedAuditTypes((prev) => prev.filter((type) => type !== auditType));
+  };
 
-  const onDrop = useCallback(
-    async (acceptedFiles) => {
-      if (acceptedFiles) {
-        setSelectedFile(acceptedFiles);
-        setUploading(true);
+  const handleReplaceAuditTypes = () => {
+    setSelectAuditOption(true);
+    setRiskReport([]);
+    setSelectedFile([]);
+    setErrorText("");
+  };
 
-        const formData = new FormData();
-        acceptedFiles.forEach((file) => {
-          formData.append("files", file); // Append multiple files
-        });
+  // Remove a file by index
+  const removeFile = (index) => {
+    setSelectedFile((prev) => prev.filter((_, i) => i !== index));
+  };
 
-        selectedAuditTypes.forEach((file) => {
-          formData.append("audit_types", file); // Append multiple files
-        });
+  const onDrop = useCallback(async (acceptedFiles) => {
+    if (acceptedFiles && acceptedFiles.length > 0) {
+      // Add new files, avoid duplicates by name
+      setSelectedFile((prev) => {
+        const existingNames = prev.map((f) => f.name);
+        const newFiles = acceptedFiles.filter(
+          (f) => !existingNames.includes(f.name)
+        );
+        return [...prev, ...newFiles];
+      });
+    }
+  }, []);
 
-        console.log("Form Data:", formData);
-        console.log("Selected Audit Types:", selectedAuditTypes);
+  const handleGetAudit = async () => {
+    if (!selectedFile || selectedFile.length === 0) {
+      setErrorText("Please select at least one file to audit.");
+      return;
+    }
+    setUploading(true);
+    setErrorText("");
+    const formData = new FormData();
+    selectedFile.forEach((file) => {
+      formData.append("files", file);
+    });
+    selectedAuditTypes.forEach((type) => {
+      formData.append("audit_types", type);
+    });
 
-        try {
-          const response = await fetch(
-            "https://regnovaai-backend.onrender.com/upload/",
-            {
-              method: "POST",
-              body: formData,
-            }
-          );
-
-          const data = await response.json();
-
-          console.log("✅ Upload successful:", data);
-          setRiskReport(data.results);
-          setUploading(false);
-
-          // if (data.content) {
-          //   alert("✅ File uploaded! Preview:\n" + data.content.slice(0, 300));
-          // } else {
-          //   alert("⚠️ No content returned");
-          // }
-        } catch (error) {
-          console.error("❌ Upload failed:", error);
-          alert("❌ Upload failed. Check console.");
-          setUploading(false);
+    try {
+      const response = await fetch(
+        "https://regnovaai-backend.onrender.com/upload/",
+        {
+          method: "POST",
+          body: formData,
         }
-      }
-    },
-    [selectedAuditTypes]
-  );
+      );
+      const data = await response.json();
+      setRiskReport(data.results);
+      setUploading(false);
+    } catch (error) {
+      setUploading(false);
+      setErrorText("❌ Upload failed. Check console.");
+      console.error("❌ Upload failed:", error);
+    }
+  };
 
   const loadDemoFile = () => {
     const demoRisks = [
@@ -99,11 +110,18 @@ export default function UploadPage() {
       },
     ];
 
-    setSelectedFile({ name: "Demo_Document.pdf" });
-    setRiskReport(demoRisks);
+    setSelectedFile([{ name: "Demo_Document.pdf" }]);
+    setRiskReport([
+      {
+        filename: "Demo_Document.pdf",
+        audit_type: selectedAuditTypes[0] || "Demo",
+        risk_report: demoRisks,
+      },
+    ]);
+    setSelectAuditOption(false);
   };
 
-  const { getRootProps, getInputProps } = useDropzone({
+  const { getRootProps, getInputProps, open } = useDropzone({
     onDrop,
     accept: {
       "application/pdf": [],
@@ -113,15 +131,14 @@ export default function UploadPage() {
       "text/csv": [],
     },
     maxFiles: 5,
+    noClick: true,
+    noKeyboard: true,
   });
 
   const [activeIndex, setActiveIndex] = useState(0);
 
   const activeReport = riskReport[activeIndex];
 
-  // const { filename, audit_type, risk_report: risk_report } = activeReport;
-
-  // Count by risk level for active report
   const countByRisk = activeReport?.risk_report?.reduce(
     (acc, { risk_level }) => {
       acc[risk_level] = (acc[risk_level] || 0) + 1;
@@ -140,38 +157,28 @@ export default function UploadPage() {
       }}
     >
       <div className="w-full max-w-4xl mx-auto text-center space-y-10">
-        {/* <img
-          src="/regnovaai-logo.png"
-          alt="RegnovaAI Logo"
-          className="w-32 mx-auto"
-          width="140"
-          height="140"
-        /> */}
-
         <main style={{ minHeight: "calc(100vh - 400px)" }}>
           <div className="space-y-3 mb-20">
             <h1 className="text-2xl sm:text-4xl font-bold">
               Welcome to RegnovaAI
             </h1>
-            {/* <p className="text-lg text-white">
-            AI-powered risk analysis, compliance scoring, and audit reporting
-            for your documents.
-          </p> */}
             <HeroSection />
           </div>
 
           {selectAuditOption && (
             <div className="max-w-2xl mx-auto">
-              <h3 className="mb-5 text-2xl">Select Audit Types</h3>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+              <h3 className="mb-5 text-3xl font-semibold text-white-200">
+                Select Audit Types
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
                 {auditTypes.map((auditType) => {
                   const isChecked = selectedAuditTypes.includes(auditType);
-
                   return (
-                    <div
+                    <label
                       key={auditType}
-                      className="flex items-center gap-2 transition duration-300 ease-in-out"
+                      htmlFor={`checkbox-${auditType}`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer bg-[#192447] border-[#2e3a5e] hover:border-blue-400
+                      `}
                     >
                       <input
                         type="checkbox"
@@ -181,18 +188,14 @@ export default function UploadPage() {
                         onChange={() => toggleAuditType(auditType)}
                         className="form-checkbox w-5 h-5 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
                       />
-                      <label
-                        htmlFor={`checkbox-${auditType}`}
-                        className="cursor-pointer text-white"
-                      >
+                      <span className="text-white font-semibold">
                         {auditType}
-                      </label>
-                    </div>
+                      </span>
+                    </label>
                   );
                 })}
               </div>
-
-              <div className="flex justify-center mt-4 gap-2 mt-8">
+              <div className="flex justify-center gap-4 mt-8">
                 <button
                   onClick={() => {
                     if (selectedAuditTypes.length === 0) {
@@ -201,124 +204,162 @@ export default function UploadPage() {
                     }
                     setSelectAuditOption(false);
                     setRiskReport([]);
-                    setSelectedFile(null);
+                    setSelectedFile([]);
                   }}
-                  className="px-4 py-2 cursor-pointer  border border-[#3e5074] bg-[#0e1543] text-white rounded-xl transition"
+                  className="px-6 py-2 font-semibold rounded-xl bg-blue-600 cursor-pointer text-white shadow-lg hover:scale-105 transition"
                 >
-                  Get Started
+                  Continue
                 </button>
                 <button
                   onClick={loadDemoFile}
-                  className="px-4 py-2 cursor-pointer  border border-[#3e5074] bg-[#0e1543] text-white rounded-xl transition"
+                  className="px-6 py-2 font-semibold rounded-xl cursor-pointer bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg hover:scale-105 transition"
                 >
                   Try Demo File
                 </button>
               </div>
               {errorText && (
-                <p className="text-red-500 text-xl mt-2">{errorText}</p>
+                <p className="text-red-400 text-lg mt-4">{errorText}</p>
               )}
             </div>
           )}
 
           {!selectAuditOption && (
             <>
+              {/* Show selected audit types as removable chips */}
+              <div className="mb-6 flex flex-wrap gap-2 justify-center items-center">
+                <span className="text-xl font-medium text-white ">
+                  Selected Audit Types:
+                </span>
+                {selectedAuditTypes.length > 0 ? (
+                  selectedAuditTypes.map((type) => (
+                    <span
+                      key={type}
+                      className="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full shadow font-medium text-base"
+                    >
+                      {type}
+                      <button
+                        onClick={() => removeAuditType(type)}
+                        className="ml-2 text-white cursor-pointer text-sm"
+                        title="Remove audit type"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <span className="ml-2 text-base text-white">None</span>
+                )}
+                <button
+                  onClick={handleReplaceAuditTypes}
+                  className="ml-2 px-3 py-1 bg-orange-500 text-white rounded-sm font-semibold shadow transition text-sm"
+                  title="Replace Audit Types"
+                >
+                  UPDATE
+                </button>
+              </div>
+
+              {/* Custom file input and display */}
               <div
                 {...getRootProps()}
-                className="cursor-pointer border-1 border-[#3e5074] bg-[#000f26] rounded-xl p-8 shadow-xl transition"
+                className="flex flex-col items-center border-2 border-dashed border-[#3e5074] bg-[#000f26] rounded-xl p-8 shadow-xl transition"
               >
-                <input {...getInputProps()} />
-                <div className="flex flex-col items-center space-y-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    width="40"
-                    height="40"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M16 7l-4-4m0 0L8 7m4-4v12"
-                    />
-                  </svg>
+                <input {...getInputProps()} multiple />
+                <button
+                  type="button"
+                  onClick={open}
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition"
+                >
+                  Browse & Select Files
+                </button>
+                <div className="w-full mt-4 flex flex-col gap-2 items-center">
                   <p className="text-lg font-normal text-white">
                     Drag and drop a document here, or click to select one
                   </p>
-                  <button className="px-4 py-2 cursor-pointer  border border-[#3e5074] bg-[#0e1543] text-white rounded transition">
-                    Browse Files
-                  </button>
                 </div>
+                <button
+                  onClick={handleGetAudit}
+                  className="mt-6 px-8 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition"
+                  type="button"
+                >
+                  Analyze & Get Audit Report
+                </button>
+                {errorText && (
+                  <p className="text-red-400 text-lg mt-4">{errorText}</p>
+                )}
               </div>
-
-              {/* <button
-              onClick={loadDemoFile}
-              className="px-4 py-2 cursor-pointer border border-[#3e5074] bg-[#0e1543] text-white rounded transition"
-            >
-              🚀 Try Demo File
-            </button> */}
+              {selectedFile && selectedFile.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-white">
+                    Selected Files:
+                  </h3>
+                  <div className="flex flex-col flex-wrap gap-2 mt-2 justify-start items-start">
+                    {selectedFile.map((file, index) => (
+                      <span
+                        key={file.name}
+                        className="flex items-center bg-gradient-to-r from-green-200 to-green-400 text-green-900 px-4 py-1 rounded shadow "
+                      >
+                        {file.name}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFile(index);
+                          }}
+                          className="ml-2 px-2 py-1 cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 rounded text-white hover:bg-red-600 transition"
+                          title="Remove file"
+                        >
+                          Delete
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
 
           {uploading && (
-            <div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div className="bg-blue-600 h-3 rounded-full animate-pulse w-2/3"></div>
+            <div className="flex flex-col items-center mt-8">
+              <div className="w-full max-w-md bg-gray-700 rounded-full h-4">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-4 rounded-full animate-pulse w-2/3"></div>
               </div>
-              <p className="text-sm text-blue-200 mt-2">
-                Analyzing document...
+              <p className="text-base text-blue-200 mt-4 font-medium tracking-wide">
+                Analyzing document, please wait...
               </p>
             </div>
           )}
 
-          {selectedFile?.length > 0 && (
-            <div className="my-6">
-              <h2 className="text-2xl font-semibold">Selected Files:</h2>
-              <ul className="list-inside text-left">
-                {selectedFile.map((file, index) => (
-                  <li key={index} className="text-sm text-blue-100">
-                    <div className="bg-green-100 text-green-800 px-4 py-2 rounded shadow-sm">
-                      ✅ File Selected: {file.name}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
           {riskReport.length > 0 && (
             <>
-              <div className="flex border-b border-gray-200 mb-6 overflow-x-auto pt-2 scrollbar-hide">
+              <div className="flex border-b border-blue-900 my-8 overflow-x-auto pt-2 scrollbar-hide">
                 {riskReport.map(({ filename, audit_type }, idx) => (
                   <button
                     key={`${filename}-${audit_type}-${idx}`}
                     onClick={() => setActiveIndex(idx)}
-                    className={`px-5 py-2.5 mr-2 rounded-t-lg transition duration-300 text-sm xxl:text-lg font-semibold whitespace-nowrap focus:outline-none 
+                    className={`px-6 py-3 mr-2 rounded-t-2xl transition duration-300 text-base font-bold whitespace-nowrap focus:outline-none 
                       ${
                         idx === activeIndex
-                          ? "bg-white text-blue-600 border-b-2 border-blue-500 shadow-sm"
-                          : "text-white-500 hover:text-blue-600 hover:bg-white-100"
+                          ? "bg-gradient-to-r from-white to-blue-100 text-blue-700 border-b-4 border-blue-500 shadow-lg"
+                          : "text-blue-200 hover:text-blue-600 hover:bg-blue-50"
                       }`}
                   >
                     {filename} – {audit_type}
                   </button>
                 ))}
               </div>
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-white-800">
+              <div className="space-y-8">
+                <h2 className="text-3xl font-extrabold text-blue-100 drop-shadow mb-4">
                   🛡️ Flagged Compliance Risks
                 </h2>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-lg">
-                  <div className="bg-red-100 text-red-800 py-2 px-4 rounded-lg shadow">
-                    🟥 High: {countByRisk.High || 0}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-lg mb-6">
+                  <div className="bg-gradient-to-r from-red-400 to-red-600 text-white py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                    🟥 High: {countByRisk?.High || 0}
                   </div>
-                  <div className="bg-yellow-100 text-yellow-800 py-2 px-4 rounded-lg shadow">
-                    🟧 Medium: {countByRisk.Medium || 0}
+                  <div className="bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                    🟧 Medium: {countByRisk?.Medium || 0}
                   </div>
-                  <div className="bg-green-100 text-green-800 py-2 px-4 rounded-lg shadow">
-                    🟩 Low: {countByRisk.Low || 0}
+                  <div className="bg-gradient-to-r from-green-300 to-green-500 text-green-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                    🟩 Low: {countByRisk?.Low || 0}
                   </div>
                 </div>
 
@@ -328,20 +369,26 @@ export default function UploadPage() {
                   </div>
                 ))}
 
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-8">
                   <button
                     onClick={() =>
-                      generateCSV(`${filename}-${audit_type}`, activeReport?.risk_report)
+                      generateCSV(
+                        `${activeReport?.filename}-${activeReport?.audit_type}`,
+                        activeReport?.risk_report
+                      )
                     }
-                    className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 shadow"
+                    className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
                   >
                     📊 Download CSV Report
                   </button>
                   <button
                     onClick={() =>
-                      generatePDFReport(`${filename}-${audit_type}`, activeReport?.risk_report)
+                      generatePDFReport(
+                        `${activeReport?.filename}-${activeReport?.audit_type}`,
+                        activeReport?.risk_report
+                      )
                     }
-                    className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 shadow"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
                   >
                     📄 Download PDF Report
                   </button>
@@ -350,23 +397,23 @@ export default function UploadPage() {
             </>
           )}
         </main>
-        <div className="mb-6">
-          <p className="mb-2">Powered by</p>
-          <div className="flex justify-center items-center gap-4">
+        <div className="mb-10 mt-16">
+          <p className="mb-2 text-blue-200 font-medium">Powered by</p>
+          <div className="flex justify-center items-center gap-6">
             <img
               src="/said-logo.png"
               alt="Said Business School"
-              className="w-16 h-16 border"
+              className="w-16 h-16 border-2 border-blue-700 rounded-full shadow-lg bg-white"
             />
             <img
               src="/oxford-logo.png"
               alt="Oxford University"
-              className="w-16 h-16 border"
+              className="w-16 h-16 border-2 border-blue-700 rounded-full shadow-lg bg-white"
             />
           </div>
         </div>
 
-        <footer className="text-sm text-blue-200">
+        <footer className="text-base text-blue-300 font-medium tracking-wide mt-4">
           &copy; {new Date().getFullYear()} RegnovaAI. All rights reserved.
         </footer>
       </div>
