@@ -200,7 +200,7 @@ export default function UploadPage() {
                 </button>
               </div>
               {errorText && (
-                <p className="text-red-500 text-sm mt-2">{errorText}</p>
+                <p className="text-red-500 text-xl mt-2">{errorText}</p>
               )}
             </div>
               )}
