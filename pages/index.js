@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useCallback } from "react";
@@ -25,44 +23,58 @@ export default function UploadPage() {
           ? prevSelected.filter((type) => type !== auditType) // Unselect
           : [...prevSelected, auditType] // Select
     );
-    setErrorText("")
+    setErrorText("");
   };
 
-  const onDrop = useCallback(async (acceptedFiles) => {
-    if (acceptedFiles) {
-      setSelectedFile(acceptedFiles);
-      setUploading(true);
+  console.log("Selected Audit Types:", selectedAuditTypes);
 
-      const formData = new FormData();
-      acceptedFiles.forEach((file) => {
-        formData.append("file", file); // Append multiple files
-      });
+  const onDrop = useCallback(
+    async (acceptedFiles) => {
+      if (acceptedFiles) {
+        setSelectedFile(acceptedFiles);
+        setUploading(true);
 
-      try {
-        const response = await fetch(
-          "https://regnovaai-backend.onrender.com/upload/",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        const formData = new FormData();
+        acceptedFiles.forEach((file) => {
+          formData.append("files", file); // Append multiple files
+        });
 
-        const data = await response.json();
-        setRiskReport(data.risk_report);
-        setUploading(false);
+        selectedAuditTypes.forEach((file) => {
+          formData.append("audit_types", file); // Append multiple files
+        });
 
-        if (data.content) {
-          alert("✅ File uploaded! Preview:\n" + data.content.slice(0, 300));
-        } else {
-          alert("⚠️ No content returned");
+        console.log("Form Data:", formData);
+        console.log("Selected Audit Types:", selectedAuditTypes);
+
+        try {
+          const response = await fetch(
+            "https://regnovaai-backend.onrender.com/upload/",
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          const data = await response.json();
+
+          console.log("✅ Upload successful:", data);
+          setRiskReport(data.results);
+          setUploading(false);
+
+          // if (data.content) {
+          //   alert("✅ File uploaded! Preview:\n" + data.content.slice(0, 300));
+          // } else {
+          //   alert("⚠️ No content returned");
+          // }
+        } catch (error) {
+          console.error("❌ Upload failed:", error);
+          alert("❌ Upload failed. Check console.");
+          setUploading(false);
         }
-      } catch (error) {
-        console.error("❌ Upload failed:", error);
-        alert("❌ Upload failed. Check console.");
-        setUploading(false);
       }
-    }
-  }, []);
+    },
+    [selectedAuditTypes]
+  );
 
   const loadDemoFile = () => {
     const demoRisks = [
@@ -103,11 +115,20 @@ export default function UploadPage() {
     maxFiles: 5,
   });
 
-  const countByRisk = {
-    High: riskReport.filter((r) => r.risk_level === "High").length,
-    Medium: riskReport.filter((r) => r.risk_level === "Medium").length,
-    Low: riskReport.filter((r) => r.risk_level === "Low").length,
-  };
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const activeReport = riskReport[activeIndex];
+
+  // const { filename, audit_type, risk_report: risk_report } = activeReport;
+
+  // Count by risk level for active report
+  const countByRisk = activeReport?.risk_report?.reduce(
+    (acc, { risk_level }) => {
+      acc[risk_level] = (acc[risk_level] || 0) + 1;
+      return acc;
+    },
+    {}
+  );
 
   return (
     <div
@@ -127,7 +148,7 @@ export default function UploadPage() {
           height="140"
         /> */}
 
-        <main style={{ minHeight: "calc(100vh - 400px)", }}>
+        <main style={{ minHeight: "calc(100vh - 400px)" }}>
           <div className="space-y-3 mb-20">
             <h1 className="text-2xl sm:text-4xl font-bold">
               Welcome to RegnovaAI
@@ -139,15 +160,11 @@ export default function UploadPage() {
             <HeroSection />
           </div>
 
-
-
-
           {selectAuditOption && (
             <div className="max-w-2xl mx-auto">
               <h3 className="mb-5 text-2xl">Select Audit Types</h3>
-             
-             
-               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
                 {auditTypes.map((auditType) => {
                   const isChecked = selectedAuditTypes.includes(auditType);
 
@@ -175,9 +192,7 @@ export default function UploadPage() {
                 })}
               </div>
 
-
-              
-                <div className="flex justify-center mt-4 gap-2 mt-8">
+              <div className="flex justify-center mt-4 gap-2 mt-8">
                 <button
                   onClick={() => {
                     if (selectedAuditTypes.length === 0) {
@@ -203,7 +218,7 @@ export default function UploadPage() {
                 <p className="text-red-500 text-xl mt-2">{errorText}</p>
               )}
             </div>
-              )}
+          )}
 
           {!selectAuditOption && (
             <>
@@ -259,9 +274,9 @@ export default function UploadPage() {
           )}
 
           {selectedFile?.length > 0 && (
-            <div className="mt-6">
+            <div className="my-6">
               <h2 className="text-2xl font-semibold">Selected Files:</h2>
-              <ul className="list-disc list-inside text-left">
+              <ul className="list-inside text-left">
                 {selectedFile.map((file, index) => (
                   <li key={index} className="text-sm text-blue-100">
                     <div className="bg-green-100 text-green-800 px-4 py-2 rounded shadow-sm">
@@ -272,52 +287,67 @@ export default function UploadPage() {
               </ul>
             </div>
           )}
-
           {riskReport.length > 0 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-white">
-                🛡️ Flagged Compliance Risks
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-lg">
-                <div className="bg-red-100 text-red-800 py-2 px-4 rounded-lg shadow">
-                  🟥 High: {countByRisk.High}
+            <>
+              <div className="flex border-b border-gray-200 mb-6 overflow-x-auto pt-2 scrollbar-hide">
+                {riskReport.map(({ filename, audit_type }, idx) => (
+                  <button
+                    key={`${filename}-${audit_type}-${idx}`}
+                    onClick={() => setActiveIndex(idx)}
+                    className={`px-5 py-2.5 mr-2 rounded-t-lg transition duration-300 text-sm xxl:text-lg font-semibold whitespace-nowrap focus:outline-none 
+                      ${
+                        idx === activeIndex
+                          ? "bg-white text-blue-600 border-b-2 border-blue-500 shadow-sm"
+                          : "text-white-500 hover:text-blue-600 hover:bg-white-100"
+                      }`}
+                  >
+                    {filename} – {audit_type}
+                  </button>
+                ))}
+              </div>
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-white-800">
+                  🛡️ Flagged Compliance Risks
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-lg">
+                  <div className="bg-red-100 text-red-800 py-2 px-4 rounded-lg shadow">
+                    🟥 High: {countByRisk.High || 0}
+                  </div>
+                  <div className="bg-yellow-100 text-yellow-800 py-2 px-4 rounded-lg shadow">
+                    🟧 Medium: {countByRisk.Medium || 0}
+                  </div>
+                  <div className="bg-green-100 text-green-800 py-2 px-4 rounded-lg shadow">
+                    🟩 Low: {countByRisk.Low || 0}
+                  </div>
                 </div>
-                <div className="bg-yellow-100 text-yellow-800 py-2 px-4 rounded-lg shadow">
-                  🟧 Medium: {countByRisk.Medium}
-                </div>
-                <div className="bg-green-100 text-green-800 py-2 px-4 rounded-lg shadow">
-                  🟩 Low: {countByRisk.Low}
+
+                {activeReport?.risk_report?.map((risk, idx) => (
+                  <div key={idx} className="mt-4">
+                    <RiskCard {...risk} />
+                  </div>
+                ))}
+
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
+                  <button
+                    onClick={() =>
+                      generateCSV(`${filename}-${audit_type}`, activeReport?.risk_report)
+                    }
+                    className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 shadow"
+                  >
+                    📊 Download CSV Report
+                  </button>
+                  <button
+                    onClick={() =>
+                      generatePDFReport(`${filename}-${audit_type}`, activeReport?.risk_report)
+                    }
+                    className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 shadow"
+                  >
+                    📄 Download PDF Report
+                  </button>
                 </div>
               </div>
-
-              {riskReport.map((risk, index) => (
-                <div key={index} className="mt-4">
-                  <RiskCard {...risk} />
-                </div>
-              ))}
-
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
-                <button
-                  onClick={() =>
-                    generateCSV(selectedFile?.name || "document", riskReport)
-                  }
-                  className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 shadow"
-                >
-                  📊 Download CSV Report
-                </button>
-                <button
-                  onClick={() =>
-                    generatePDFReport(
-                      selectedFile?.name || "document",
-                      riskReport
-                    )
-                  }
-                  className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 shadow"
-                >
-                  📄 Download PDF Report
-                </button>
-              </div>
-            </div>
+            </>
           )}
         </main>
         <div className="mb-6">
@@ -343,4 +373,3 @@ export default function UploadPage() {
     </div>
   );
 }
-
