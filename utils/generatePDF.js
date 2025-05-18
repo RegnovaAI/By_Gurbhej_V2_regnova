@@ -57,12 +57,6 @@
 //   doc.save(`${filename.replace(/\.[^/.]+$/, "")}-RiskReport.pdf`);
 // }
 
-
-
-
-
-
-
 // import jsPDF from "jspdf";
 // import "jspdf-autotable";
 
@@ -110,9 +104,6 @@
 
 //   doc.save(`${filename}-RegulaAI-Audit.pdf`);
 // }
-
-
-
 
 // import jsPDF from "jspdf";
 // import autoTable from "jspdf-autotable";
@@ -180,12 +171,6 @@
 //   // Save PDF
 //   doc.save(`${filename.replace(/\.[^/.]+$/, "")}-Audit-Report.pdf`);
 // }
-
-
-
-
-
-
 
 // import jsPDF from "jspdf";
 // import autoTable from "jspdf-autotable";
@@ -260,13 +245,10 @@
 //   doc.save(`${filename.replace(/\.[^/.]+$/, "")}-Audit-Report.pdf`);
 // }
 
-
-
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export function generatePDFReport(filename, riskReport) {
+export function generatePDFReport(filename, riskReport, returnBlob = false) {
   const doc = new jsPDF();
 
   // Title
@@ -282,9 +264,9 @@ export function generatePDFReport(filename, riskReport) {
 
   // Risk Summary
   const counts = {
-    High: riskReport.filter(r => r.risk_level === "High").length,
-    Medium: riskReport.filter(r => r.risk_level === "Medium").length,
-    Low: riskReport.filter(r => r.risk_level === "Low").length
+    High: riskReport.filter((r) => r.risk_level === "High").length,
+    Medium: riskReport.filter((r) => r.risk_level === "Medium").length,
+    Low: riskReport.filter((r) => r.risk_level === "Low").length,
   };
 
   doc.setFontSize(12);
@@ -332,7 +314,7 @@ export function generatePDFReport(filename, riskReport) {
     },
     margin: { left: 12, right: 10 }, // consistent with header margin
     didParseCell: function (data) {
-      if (data.section === 'body') {
+      if (data.section === "body") {
         const risk = data.row.raw[2]; // "Risk Level" column
         if (risk === "High") {
           data.cell.styles.fillColor = [255, 230, 230];
@@ -342,22 +324,13 @@ export function generatePDFReport(filename, riskReport) {
           data.cell.styles.fillColor = [220, 255, 220];
         }
       }
-    }
+    },
   });
-
-  doc.save(`${filename.replace(/\.[^/.]+$/, "")}-Audit-Report.pdf`);
+  if (returnBlob) {
+    // Only return the Blob, do NOT trigger download
+    return doc.output("blob");
+  } else {
+    // Trigger download
+    doc.save(`${filename.replace(/\.[^/.]+$/, "")}-Audit-Report.pdf`);
+  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

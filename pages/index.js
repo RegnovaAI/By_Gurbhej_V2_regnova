@@ -7,6 +7,7 @@ import { generatePDFReport } from "../utils/generatePDF";
 import { generateCSV } from "../utils/generateCSV";
 import { auditTypes } from "@/utils/constant";
 import HeroSection from "@/components/HeroSection";
+import JSZip from "jszip";
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState([]);
@@ -181,6 +182,46 @@ export default function UploadPage() {
     },
     {}
   );
+
+  const selectedAuditTypeReports =
+    activeDashboardRow &&
+    riskReport.filter((r) => r.audit_type === activeDashboardRow.auditType);
+
+  async function handleDownloadAllPDFsZip() {
+    if (!riskReport || riskReport.length === 0) {
+      console.warn("No reports to process.");
+      return;
+    }
+
+    const zip = new JSZip();
+
+    for (const report of riskReport) {
+      try {
+        const pdfBlob = await generatePDFReport(
+          `${report.filename}-${report.audit_type}`,
+          report.risk_report,
+          true // Return Blob
+        );
+        zip.file(`${report.filename}-${report.audit_type}.pdf`, pdfBlob);
+      } catch (error) {
+        console.error(`Failed to generate PDF for ${report.filename}:`, error);
+      }
+    }
+
+    try {
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "All-Audit-Reports.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to create or download ZIP:", error);
+    }
+  }
 
   return (
     <div
@@ -368,13 +409,19 @@ export default function UploadPage() {
           {/* Example: Click on a row to show its risks */}
           {riskReport.length > 0 && (
             <div className="overflow-x-auto mt-10">
-              <h2 className="text-2xl font-bold text-blue-200 mb-4">Dashboard Summary</h2>
+              <h2 className="text-2xl font-bold text-blue-200 mb-4">
+                Dashboard Summary
+              </h2>
               <table className="min-w-full bg-[#101c3a] rounded-xl shadow-lg">
                 <thead>
                   <tr>
-                    <th className="px-4 py-2 text-left text-blue-200">Document</th>
-                    {selectedAuditTypes.map(type => (
-                      <th key={type} className="px-4 py-2 text-blue-200">{type}</th>
+                    <th className="px-4 py-2 text-left text-blue-200">
+                      Document
+                    </th>
+                    {selectedAuditTypes.map((type) => (
+                      <th key={type} className="px-4 py-2 text-blue-200">
+                        {type}
+                      </th>
                     ))}
                     <th className="px-4 py-2 text-blue-200">Total Risks</th>
                     <th className="px-4 py-2 text-blue-200">High</th>
@@ -383,23 +430,28 @@ export default function UploadPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dashboardSummary.map(row => (
+                  {dashboardSummary.map((row) => (
                     <tr key={row.filename} className="border-t border-blue-900">
-                      <td className="px-4 py-2 font-semibold text-start">{row.filename}</td>
-                      {selectedAuditTypes.map(type => (
+                      <td className="px-4 py-2 font-semibold text-start">
+                        {row.filename}
+                      </td>
+                      {selectedAuditTypes.map((type) => (
                         <td key={type} className="px-4 py-2 text-center">
                           {row.audits[type] ? (
                             <button
                               className="px-4 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded shadow hover:scale-105 transition"
                               onClick={() => {
                                 const found = riskReport.find(
-                                  r =>
+                                  (r) =>
                                     r.filename === row.filename &&
                                     r.audit_type === type
                                 );
                                 setActiveDashboardRow(
                                   found
-                                    ? { filename: found.filename, auditType: found.audit_type }
+                                    ? {
+                                        filename: found.filename,
+                                        auditType: found.audit_type,
+                                      }
                                     : null
                                 );
                               }}
@@ -422,60 +474,76 @@ export default function UploadPage() {
             </div>
           )}
 
-          {selectedAuditTypes.length > 0 && activeDashboardRow && selectedAuditReport && (
-            <div className="space-y-8 mt-12">
-              <h2 className="text-2xl font-bold text-blue-100 drop-shadow mb-4">
-                🛡️ Flagged Compliance Risks{" "} <br/>
-                <span className="text-blue-300">{selectedAuditReport.filename}</span>
-                {" ("}
-                <span className="text-blue-300">{selectedAuditReport.audit_type}</span>
-                {")"}
-              </h2>
+          {selectedAuditTypes.length > 0 &&
+            activeDashboardRow &&
+            selectedAuditReport && (
+              <div className="space-y-8 mt-12">
+                <h2 className="text-2xl font-bold text-blue-100 drop-shadow mb-4">
+                  🛡️ Flagged Compliance Risks <br />
+                  <span className="text-blue-300">
+                    {selectedAuditReport.filename}
+                  </span>
+                  {" ("}
+                  <span className="text-blue-300">
+                    {selectedAuditReport.audit_type}
+                  </span>
+                  {")"}
+                </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-lg mb-6">
-                <div className="bg-gradient-to-r from-red-400 to-red-600 text-white py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
-                  🟥 High: {countByRisk?.High || 0}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-lg mb-6">
+                  <div className="bg-gradient-to-r from-red-400 to-red-600 text-white py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                    🟥 High: {countByRisk?.High || 0}
+                  </div>
+                  <div className="bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                    🟧 Medium: {countByRisk?.Medium || 0}
+                  </div>
+                  <div className="bg-gradient-to-r from-green-300 to-green-500 text-green-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                    🟩 Low: {countByRisk?.Low || 0}
+                  </div>
                 </div>
-                <div className="bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
-                  🟧 Medium: {countByRisk?.Medium || 0}
-                </div>
-                <div className="bg-gradient-to-r from-green-300 to-green-500 text-green-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
-                  🟩 Low: {countByRisk?.Low || 0}
+
+                {selectedAuditReport?.risk_report?.map((risk, idx) => (
+                  <div key={idx} className="mt-4">
+                    <RiskCard {...risk} />
+                  </div>
+                ))}
+
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-8">
+                  <button
+                    onClick={() =>
+                      generateCSV(
+                        `${activeDashboardRow?.auditType}-All-Reports`,
+                        selectedAuditTypeReports?.flatMap(
+                          (r) => r.risk_report
+                        ) || []
+                      )
+                    }
+                    className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
+                  >
+                    📊 Download {activeDashboardRow?.auditType} CSV Report
+                  </button>
+                  <button
+                    onClick={() =>
+                      generatePDFReport(
+                        `${activeDashboardRow?.auditType}-All-Reports`,
+                        selectedAuditTypeReports?.flatMap(
+                          (r) => r.risk_report
+                        ) || []
+                      )
+                    }
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
+                  >
+                    📄 Download {activeDashboardRow?.auditType} PDF Report
+                  </button>
+                  <button
+                    onClick={handleDownloadAllPDFsZip}
+                    className="bg-gradient-to-r from-pink-500 to-red-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
+                  >
+                    🗜️ Download All Reports (PDF ZIP)
+                  </button>
                 </div>
               </div>
-
-              {selectedAuditReport?.risk_report?.map((risk, idx) => (
-                <div key={idx} className="mt-4">
-                  <RiskCard {...risk} />
-                </div>
-              ))}
-
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-8">
-                <button
-                  onClick={() =>
-                    generateCSV(
-                      `${selectedAuditReport?.filename}-${selectedAuditReport?.audit_type}`,
-                      selectedAuditReport?.risk_report
-                    )
-                  }
-                  className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
-                >
-                  📊 Download CSV Report
-                </button>
-                <button
-                  onClick={() =>
-                    generatePDFReport(
-                      `${selectedAuditReport?.filename}-${selectedAuditReport?.audit_type}`,
-                      selectedAuditReport?.risk_report
-                    )
-                  }
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
-                >
-                  📄 Download PDF Report
-                </button>
-              </div>
-            </div>
-          )}
+            )}
         </main>
         <div className="mb-10 mt-16">
           <p className="mb-2 text-blue-200 font-medium">Powered by</p>
