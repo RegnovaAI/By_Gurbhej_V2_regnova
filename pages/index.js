@@ -178,10 +178,17 @@ export default function UploadPage() {
               <div className="flex justify-center mt-4 gap-2 mt-8">
                 <button
                   onClick={() => {
+                    if (selectedAuditTypes.length === 0) {
+                      alert("Please select at least one audit type.");
+                      return;
+                    }
                     setSelectAuditOption(false);
                     setRiskReport([]);
                     setSelectedFile(null);
                   }}
+
+                  
+
                   className="px-4 py-2 cursor-pointer  border border-[#3e5074] bg-[#0e1543] text-white rounded-xl transition"
                 >
                   Get Started
