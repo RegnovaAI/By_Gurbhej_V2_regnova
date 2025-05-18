@@ -143,23 +143,38 @@ export default function UploadPage() {
           {selectAuditOption && (
             <div className="max-w-2xl mx-auto">
               <h3 className="mb-5 text-2xl">Select Audit Types</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-                {auditTypes.map((auditType) => (
-                  <div
-                    key={auditType}
-                    className={`border border-1 rounded-lg p-2 cursor-pointer transition duration-300 ease-in-out
-                  ${
-                    selectedAuditTypes.includes(auditType)
-                      ? "bg-[#0e1543] pulse-bg" // Selected with pulse
-                      : "bg-[#000f26] pulse-bg" // Default background
-                  }
-                  border-[#3e5074] hover:bg-[#0e1543]`}
-                    onClick={() => toggleAuditType(auditType)}
-                  >
-                    {auditType}
-                  </div>
-                ))}
+             
+             
+               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                {auditTypes.map((auditType) => {
+                  const isChecked = selectedAuditTypes.includes(auditType);
+
+                  return (
+                    <div
+                      key={auditType}
+                      className="flex items-center gap-2 transition duration-300 ease-in-out"
+                    >
+                      <input
+                        type="checkbox"
+                        id={`checkbox-${auditType}`}
+                        value={auditType}
+                        checked={isChecked}
+                        onChange={() => toggleAuditType(auditType)}
+                        className="form-checkbox w-5 h-5"
+                      />
+                      <label
+                        htmlFor={`checkbox-${auditType}`}
+                        className="cursor-pointer text-white"
+                      >
+                        {auditType}
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
+
+
+              
               <div className="flex justify-center mt-4 gap-2 mt-8">
                 <button
                   onClick={() => {
