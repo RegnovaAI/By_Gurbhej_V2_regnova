@@ -15,6 +15,7 @@ export default function UploadPage() {
   const [selectAuditOption, setSelectAuditOption] = useState(true);
   const [selectedAuditTypes, setSelectedAuditTypes] = useState([]);
   const [errorText, setErrorText] = useState("");
+  const [activeDashboardRow, setActiveDashboardRow] = useState(null);
 
   const toggleAuditType = (auditType) => {
     setSelectedAuditTypes((prevSelected) =>
@@ -33,6 +34,7 @@ export default function UploadPage() {
     setSelectAuditOption(true);
     setRiskReport([]);
     setSelectedFile([]);
+    setActiveDashboardRow(null);
     setErrorText("");
   };
 
@@ -43,7 +45,6 @@ export default function UploadPage() {
 
   const onDrop = useCallback(async (acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
-      // Add new files, avoid duplicates by name
       setSelectedFile((prev) => {
         const existingNames = prev.map((f) => f.name);
         const newFiles = acceptedFiles.filter(
@@ -79,6 +80,7 @@ export default function UploadPage() {
       );
       const data = await response.json();
       setRiskReport(data.results);
+      setActiveDashboardRow(null);
       setUploading(false);
     } catch (error) {
       setUploading(false);
@@ -119,6 +121,7 @@ export default function UploadPage() {
       },
     ]);
     setSelectAuditOption(false);
+    setActiveDashboardRow(null);
   };
 
   const { getRootProps, getInputProps, open } = useDropzone({
@@ -135,11 +138,43 @@ export default function UploadPage() {
     noKeyboard: true,
   });
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  // Dashboard summary aggregation
+  function getDashboardSummary(riskReport, auditTypes) {
+    const summary = {};
+    riskReport.forEach(({ filename, audit_type, risk_report }) => {
+      if (!summary[filename]) {
+        summary[filename] = {
+          audits: {},
+          total: 0,
+          High: 0,
+          Medium: 0,
+          Low: 0,
+        };
+      }
+      summary[filename].audits[audit_type] = true;
+      summary[filename].total += risk_report.length;
+      risk_report.forEach(({ risk_level }) => {
+        summary[filename][risk_level] += 1;
+      });
+    });
+    return Object.entries(summary).map(([filename, data]) => ({
+      filename,
+      ...data,
+    }));
+  }
 
-  const activeReport = riskReport[activeIndex];
+  const dashboardSummary = getDashboardSummary(riskReport, auditTypes);
 
-  const countByRisk = activeReport?.risk_report?.reduce(
+  // Find the risk report for the selected dashboard row
+  const selectedAuditReport =
+    activeDashboardRow &&
+    riskReport.find(
+      (r) =>
+        r.filename === activeDashboardRow.filename &&
+        r.audit_type === activeDashboardRow.auditType
+    );
+
+  const countByRisk = selectedAuditReport?.risk_report?.reduce(
     (acc, { risk_level }) => {
       acc[risk_level] = (acc[risk_level] || 0) + 1;
       return acc;
@@ -317,6 +352,7 @@ export default function UploadPage() {
             </>
           )}
 
+          {/* Remove vertical tabs and show risk details only if a dashboard row is selected */}
           {uploading && (
             <div className="flex flex-col items-center mt-8">
               <div className="w-full max-w-md bg-gray-700 rounded-full h-4">
@@ -328,87 +364,131 @@ export default function UploadPage() {
             </div>
           )}
 
+          {/* Optionally, you can add a way to select a row to show its risks */}
+          {/* Example: Click on a row to show its risks */}
           {riskReport.length > 0 && (
-            <>
-              <div className="flex border-b border-blue-900 my-8 overflow-x-auto pt-2 scrollbar-hide">
-                {riskReport.map(({ filename, audit_type }, idx) => (
-                  <button
-                    key={`${filename}-${audit_type}-${idx}`}
-                    onClick={() => setActiveIndex(idx)}
-                    className={`px-6 py-3 mr-2 rounded-t-2xl transition duration-300 text-base font-bold whitespace-nowrap focus:outline-none 
-                      ${
-                        idx === activeIndex
-                          ? "bg-gradient-to-r from-white to-blue-100 text-blue-700 border-b-4 border-blue-500 shadow-lg"
-                          : "text-blue-200 hover:text-blue-600 hover:bg-blue-50"
-                      }`}
-                  >
-                    {filename} – {audit_type}
-                  </button>
-                ))}
-              </div>
-              <div className="space-y-8">
-                <h2 className="text-3xl font-extrabold text-blue-100 drop-shadow mb-4">
-                  🛡️ Flagged Compliance Risks
-                </h2>
+            <div className="overflow-x-auto mt-10">
+              <h2 className="text-2xl font-bold text-blue-200 mb-4">Dashboard Summary</h2>
+              <table className="min-w-full bg-[#101c3a] rounded-xl shadow-lg">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left text-blue-200">Document</th>
+                    {selectedAuditTypes.map(type => (
+                      <th key={type} className="px-4 py-2 text-blue-200">{type}</th>
+                    ))}
+                    <th className="px-4 py-2 text-blue-200">Total Risks</th>
+                    <th className="px-4 py-2 text-blue-200">High</th>
+                    <th className="px-4 py-2 text-blue-200">Medium</th>
+                    <th className="px-4 py-2 text-blue-200">Low</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboardSummary.map(row => (
+                    <tr key={row.filename} className="border-t border-blue-900">
+                      <td className="px-4 py-2 font-semibold text-start">{row.filename}</td>
+                      {selectedAuditTypes.map(type => (
+                        <td key={type} className="px-4 py-2 text-center">
+                          {row.audits[type] ? (
+                            <button
+                              className="px-4 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded shadow hover:scale-105 transition"
+                              onClick={() => {
+                                const found = riskReport.find(
+                                  r =>
+                                    r.filename === row.filename &&
+                                    r.audit_type === type
+                                );
+                                setActiveDashboardRow(
+                                  found
+                                    ? { filename: found.filename, auditType: found.audit_type }
+                                    : null
+                                );
+                              }}
+                            >
+                              View
+                            </button>
+                          ) : (
+                            ""
+                          )}
+                        </td>
+                      ))}
+                      <td className="px-4 py-2 text-center">{row.total}</td>
+                      <td className="px-4 py-2 text-center">{row.High}</td>
+                      <td className="px-4 py-2 text-center">{row.Medium}</td>
+                      <td className="px-4 py-2 text-center">{row.Low}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-lg mb-6">
-                  <div className="bg-gradient-to-r from-red-400 to-red-600 text-white py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
-                    🟥 High: {countByRisk?.High || 0}
-                  </div>
-                  <div className="bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
-                    🟧 Medium: {countByRisk?.Medium || 0}
-                  </div>
-                  <div className="bg-gradient-to-r from-green-300 to-green-500 text-green-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
-                    🟩 Low: {countByRisk?.Low || 0}
-                  </div>
+          {selectedAuditTypes.length > 0 && activeDashboardRow && selectedAuditReport && (
+            <div className="space-y-8 mt-12">
+              <h2 className="text-2xl font-bold text-blue-100 drop-shadow mb-4">
+                🛡️ Flagged Compliance Risks{" "} <br/>
+                <span className="text-blue-300">{selectedAuditReport.filename}</span>
+                {" ("}
+                <span className="text-blue-300">{selectedAuditReport.audit_type}</span>
+                {")"}
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-lg mb-6">
+                <div className="bg-gradient-to-r from-red-400 to-red-600 text-white py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                  🟥 High: {countByRisk?.High || 0}
                 </div>
-
-                {activeReport?.risk_report?.map((risk, idx) => (
-                  <div key={idx} className="mt-4">
-                    <RiskCard {...risk} />
-                  </div>
-                ))}
-
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-8">
-                  <button
-                    onClick={() =>
-                      generateCSV(
-                        `${activeReport?.filename}-${activeReport?.audit_type}`,
-                        activeReport?.risk_report
-                      )
-                    }
-                    className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
-                  >
-                    📊 Download CSV Report
-                  </button>
-                  <button
-                    onClick={() =>
-                      generatePDFReport(
-                        `${activeReport?.filename}-${activeReport?.audit_type}`,
-                        activeReport?.risk_report
-                      )
-                    }
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
-                  >
-                    📄 Download PDF Report
-                  </button>
+                <div className="bg-gradient-to-r from-yellow-300 to-yellow-500 text-yellow-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                  🟧 Medium: {countByRisk?.Medium || 0}
+                </div>
+                <div className="bg-gradient-to-r from-green-300 to-green-500 text-green-900 py-3 px-6 rounded-xl shadow font-bold flex items-center gap-2 justify-center">
+                  🟩 Low: {countByRisk?.Low || 0}
                 </div>
               </div>
-            </>
+
+              {selectedAuditReport?.risk_report?.map((risk, idx) => (
+                <div key={idx} className="mt-4">
+                  <RiskCard {...risk} />
+                </div>
+              ))}
+
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-8">
+                <button
+                  onClick={() =>
+                    generateCSV(
+                      `${selectedAuditReport?.filename}-${selectedAuditReport?.audit_type}`,
+                      selectedAuditReport?.risk_report
+                    )
+                  }
+                  className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
+                >
+                  📊 Download CSV Report
+                </button>
+                <button
+                  onClick={() =>
+                    generatePDFReport(
+                      `${selectedAuditReport?.filename}-${selectedAuditReport?.audit_type}`,
+                      selectedAuditReport?.risk_report
+                    )
+                  }
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
+                >
+                  📄 Download PDF Report
+                </button>
+              </div>
+            </div>
           )}
         </main>
         <div className="mb-10 mt-16">
           <p className="mb-2 text-blue-200 font-medium">Powered by</p>
-          <div className="flex justify-center items-center gap-6">
+          <div className="flex justify-center items-center gap-4">
             <img
               src="/said-logo.png"
               alt="Said Business School"
-              className="w-16 h-16 border-2 border-blue-700 rounded-full shadow-lg bg-white"
+              className="w-16 h-16 border"
             />
             <img
               src="/oxford-logo.png"
               alt="Oxford University"
-              className="w-16 h-16 border-2 border-blue-700 rounded-full shadow-lg bg-white"
+              className="w-16 h-16 border"
             />
           </div>
         </div>
