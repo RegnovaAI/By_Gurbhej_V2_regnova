@@ -58,8 +58,8 @@ export default function Sidebar() {
   
   const menuItems = [
     { name: 'Dashboard', icon: <DashboardIcon />, href: '/' },
-    { name: 'My Projects', icon: <ProjectsIcon />, href: '/projects' },
-    { name: 'My Audits', icon: <AuditsIcon />, href: '/audits' },
+    { name: 'My Profile', icon: <ProjectsIcon />, href: '/profile' },
+    // { name: 'My Audits', icon: <AuditsIcon />, href: '/audits' },
     // { name: 'Document Vault', icon: <DocumentIcon />, href: '/documents' },
     // { name: 'Risk Reports', icon: <ReportsIcon />, href: '/reports' },
     // { name: 'My Profile', icon: <ProfileIcon />, href: '/my-profile' },

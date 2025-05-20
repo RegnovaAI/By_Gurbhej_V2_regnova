@@ -92,7 +92,7 @@ export default function Plans() {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="xl:max-w-5xl mx-auto text-center mb-10">
+      <div className="pricing-container mx-auto text-center mb-10">
         <h1 className="text-4xl font-bold text-center text-white mb-10">
           Membership Plans
         </h1>
