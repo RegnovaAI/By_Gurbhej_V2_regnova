@@ -561,7 +561,7 @@ export default function UploadPage() {
                   </div>
                 )}
             </div>
-            <div className="flex flex-col items-center">
+            {dnaScore && (<div className="flex flex-col items-center">
               <div className="bg-gray-900 text-white p-4 rounded-lg max-w-5xl mx-auto">
                 <div className="flex">
                   {/* Sidebar */}
@@ -678,14 +678,13 @@ export default function UploadPage() {
                     operational necessity.
                   </div>
                 </div> */}
-              </div>
-            {dnaScore && (
+              </div>            
               <div className="mt-10">
                 <h2 className="mb-3 text-2xl font-medium">DNA Score:</h2>
                 <CircleChart data={dnaScore} />
               </div>
-            )}
             </div>
+            )}
           </div>
         </main>
         <div className="mb-10 mt-16">
