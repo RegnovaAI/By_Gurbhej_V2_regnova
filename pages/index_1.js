@@ -9,7 +9,6 @@ import { auditTypes } from "@/utils/constant";
 import HeroSection from "@/components/HeroSection";
 import JSZip from "jszip";
 import CircleChart from "@/components/CircularChart";
-import ClauseCam from "@/components/ClausesCard";
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState([]);
@@ -227,9 +226,6 @@ export default function UploadPage() {
     }
   }
 
-
-  const taggedClauses = riskReport[0]?.tagged_clauses || [];
-
   return (
     <div
       className="pt-40 min-h-screen flex flex-col bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white px-4 py-10"
@@ -241,7 +237,7 @@ export default function UploadPage() {
     >
       <div
         className={`w-full mx-auto text-center space-y-10 ${
-          riskReport.length > 0 ? "max-w-[1680px]" : "max-w-4xl"
+          riskReport.length > 0 ? "max-w-7xl" : "max-w-4xl"
         }`}
       >
         <main style={{ minHeight: "calc(100vh - 400px)" }}>
@@ -565,9 +561,100 @@ export default function UploadPage() {
                   </div>
                 )}
             </div>
-            {dnaScore && (<div className="flex flex-col items-center max-w-7xl">
-              <div className="bg-gray-900 text-white p-4 rounded-lg mx-auto h-96 overflow-y-auto shadow-lg">
-                <ClauseCam tagged_clauses={taggedClauses}/>
+            {dnaScore && (<div className="flex flex-col items-center">
+              <div className="bg-gray-900 text-white p-4 rounded-lg max-w-5xl mx-auto">
+                <div className="flex">
+                  {/* Sidebar */}
+                  <div className="w-48 pr-4">
+                    <h2 className="text-lg font-semibold mb-4">ClauseCam™</h2>
+                    <ul className="space-y-2">
+                      <li>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            defaultChecked
+                            className="form-checkbox text-blue-500"
+                          />
+                          <span>SOC 2</span>
+                        </label>
+                      </li>
+                      <li>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            defaultChecked
+                            className="form-checkbox text-blue-500"
+                          />
+                          <span>GDPR</span>
+                        </label>
+                      </li>
+                      <li>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            defaultChecked
+                            className="form-checkbox text-blue-500"
+                          />
+                          <span>SOX</span>
+                        </label>
+                      </li>
+                    </ul>
+
+                    <div className="mt-6 space-y-1 text-sm">
+                      <div>
+                        <span className="inline-block w-3 h-3 bg-green-400 rounded-full mr-2"></span>
+                        Safe
+                      </div>
+                      <div>
+                        <span className="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-2"></span>
+                        Risky (why)
+                      </div>
+                      <div>
+                        <span className="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                        Missing (from standard)
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clause Display */}
+                  <div className="flex-1 space-y-4">
+                    {/* Safe Clause */}
+                    <div className="bg-green-800/50 p-4 rounded border-l-4 border-green-400">
+                      <p>
+                        <span className="text-green-300">The Company</span> will
+                        retain user data for a period not exceeding five years.
+                      </p>
+                    </div>
+
+                    {/* Risky Clause */}
+                    <div className="bg-yellow-800/40 p-4 rounded border-l-4 border-yellow-400 flex justify-between items-start">
+                      <div>
+                        <p className="text-yellow-300 font-medium">⚠️ Risky:</p>
+                        <p>Retention period may be excessive under SOC 2</p>
+                      </div>
+                      <div className="ml-2 text-yellow-300">▼</div>
+                    </div>
+
+                    {/* Missing Clause */}
+                    <div className="bg-purple-800/40 p-4 rounded border-l-4 border-purple-400">
+                      <p>
+                        <span className="text-purple-300 font-medium">
+                          Missing:
+                        </span>{" "}
+                        No data deletion policy found.
+                      </p>
+                      <p>User accounts remain active without deletion.</p>
+                    </div>
+
+                    {/* Conditional Clause */}
+                    <div className="bg-purple-900/30 p-4 rounded border-l-4 border-purple-500">
+                      <p>
+                        Retention may vary depending on the subscription plan.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Tooltip-like Detail Box */}
                 {/* <div className="mt-6 bg-gray-800 p-4 rounded shadow-lg max-w-xl">
                   <p className="text-white font-semibold">
