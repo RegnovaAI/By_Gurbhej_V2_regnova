@@ -566,7 +566,7 @@ export default function UploadPage() {
                 )}
             </div>
             {dnaScore && (<div className="flex flex-col items-center max-w-7xl">
-              <div className="bg-gray-900 text-white p-4 rounded-lg mx-auto h-96 overflow-y-auto shadow-lg">
+              <div className="bg-gray-900 text-white rounded-xl border border-gray-700 mx-auto h-96 overflow-y-auto shadow-lg">
                 <ClauseCam tagged_clauses={taggedClauses}/>
                 {/* Tooltip-like Detail Box */}
                 {/* <div className="mt-6 bg-gray-800 p-4 rounded shadow-lg max-w-xl">
