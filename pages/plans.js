@@ -38,7 +38,7 @@ export default function Plans() {
       features: ["24/7 Support", "Unlimited Projects", "200 GB Storage"],
     },
     {
-      title: "Enterprise",
+      title: "Enterprises",
       monthPrice: 1999,
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
