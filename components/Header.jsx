@@ -1,8 +1,13 @@
-import Link from 'next/link';
-import React, { useState, useEffect } from 'react';
+import Link from "next/link";
+import React, { useState, useEffect } from "react";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    setHasToken(!!localStorage.getItem("rg-token"));
+  }, []);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -10,25 +15,25 @@ export default function Header() {
 
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden'; // Disable scrolling
+      document.body.style.overflow = "hidden"; // Disable scrolling
     } else {
-      document.body.style.overflow = ''; // Enable scrolling
+      document.body.style.overflow = ""; // Enable scrolling
     }
 
     return () => {
-      document.body.style.overflow = ''; // Cleanup on unmount
+      document.body.style.overflow = ""; // Cleanup on unmount
     };
   }, [isMobileMenuOpen]);
 
   const handleRouteChange = () => {
     setIsMobileMenuOpen(false); // Close the mobile menu when a link is clicked
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   return (
     <header
       className={`absolute w-full text-white px-4 py-3 ${
-        isMobileMenuOpen ? 'bg-[#3e5074]' : ''
+        isMobileMenuOpen ? "bg-[#3e5074]" : ""
       } transition-all duration-300`}
     >
       <div className="max-w-[1440px] mx-auto flex items-center justify-between">
@@ -47,7 +52,11 @@ export default function Header() {
 
         {/* Right: Links */}
         <nav className="hidden md:flex space-x-6">
-          <Link href="/" onClick={() => handleRouteChange()} className="hover:text-blue-300 text-lg">
+          <Link
+            href="/"
+            onClick={() => handleRouteChange()}
+            className="hover:text-blue-300 text-lg"
+          >
             Home
           </Link>
           <Link href="/aboutus" className="hover:text-blue-300 text-lg">
@@ -65,9 +74,15 @@ export default function Header() {
           <Link href="/plans" className="hover:text-blue-300 text-lg">
             Pricing
           </Link>
-          <Link href="/login" className="hover:text-blue-300 text-lg">
-            Log in
-          </Link>
+          {hasToken ? (
+            <Link href="/profile" className="hover:text-blue-300 text-lg">
+              Profile
+            </Link>
+          ) : (
+            <Link href="/login" className="hover:text-blue-300 text-lg">
+              Log in
+            </Link>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -119,27 +134,57 @@ export default function Header() {
           </button>
 
           {/* Links */}
-          <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-blue-300 text-xl font-medium">
+          <Link
+            href="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="hover:text-blue-300 text-xl font-medium"
+          >
             Home
           </Link>
-          <Link href="/aboutus" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-blue-300 text-xl font-medium">
+          <Link
+            href="/aboutus"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="hover:text-blue-300 text-xl font-medium"
+          >
             About us
           </Link>
-          <Link href="/mission" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-blue-300 text-xl font-medium">
+          <Link
+            href="/mission"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="hover:text-blue-300 text-xl font-medium"
+          >
             Mission
           </Link>
-          <Link href="/vision" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-blue-300 text-xl font-medium">
+          <Link
+            href="/vision"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="hover:text-blue-300 text-xl font-medium"
+          >
             Vision
           </Link>
-          <Link href="/career" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-blue-300 text-xl font-medium">
+          <Link
+            href="/career"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="hover:text-blue-300 text-xl font-medium"
+          >
             Career
           </Link>
-          <Link href="/plans" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-blue-300 text-xl font-medium">
+          <Link
+            href="/plans"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="hover:text-blue-300 text-xl font-medium"
+          >
             Pricing
           </Link>
-          <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-blue-300 text-xl font-medium">
-            Log in
-          </Link>
+          {hasToken ? (
+            <Link href="/profile" className="hover:text-blue-300 text-lg">
+              Profile
+            </Link>
+          ) : (
+            <Link href="/login" className="hover:text-blue-300 text-lg">
+              Log in
+            </Link>
+          )}
         </nav>
       )}
     </header>

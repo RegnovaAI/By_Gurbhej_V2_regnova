@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import RiskCard from "../components/RiskCard";
 import { generatePDFReport } from "../utils/generatePDF";
@@ -20,6 +20,7 @@ export default function UploadPage() {
   const [errorText, setErrorText] = useState("");
   const [activeDashboardRow, setActiveDashboardRow] = useState(null);
   const [dnaScore, setDnaScore] = useState(null);
+  const [isDemo, setIsDemo] = useState(false);
 
   const toggleAuditType = (auditType) => {
     setSelectedAuditTypes((prevSelected) =>
@@ -34,12 +35,26 @@ export default function UploadPage() {
     setSelectedAuditTypes((prev) => prev.filter((type) => type !== auditType));
   };
 
+  useEffect(() => {
+    if (selectedAuditTypes.length === 0 && !selectAuditOption) {
+      setSelectAuditOption(true);
+      setRiskReport([]);
+      setSelectedFile([]);
+      setActiveDashboardRow(null);
+      setErrorText("");
+      setDnaScore(null);
+      setIsDemo(false);
+    }
+  }, [selectedAuditTypes, selectAuditOption]);
+
   const handleReplaceAuditTypes = () => {
     setSelectAuditOption(true);
     setRiskReport([]);
     setSelectedFile([]);
     setActiveDashboardRow(null);
     setErrorText("");
+    setDnaScore(null);
+    setIsDemo(false);
   };
 
   // Remove a file by index
@@ -95,6 +110,11 @@ export default function UploadPage() {
   };
 
   const loadDemoFile = () => {
+    setIsDemo(true);
+    const demoAuditType = selectedAuditTypes[0] || "Demo";
+    if (!selectedAuditTypes.includes(demoAuditType)) {
+      setSelectedAuditTypes([demoAuditType]);
+    }
     const demoRisks = [
       {
         issue: "Missing Encryption Policy",
@@ -102,6 +122,7 @@ export default function UploadPage() {
         explanation:
           "The document lacks guidelines for encrypting data at rest and in transit.",
         suggestion: "Add a section detailing mandatory encryption practices.",
+        // tagged_clauses: { GDPR: 66 },
       },
       {
         issue: "Weak Password Requirements",
@@ -121,12 +142,30 @@ export default function UploadPage() {
     setRiskReport([
       {
         filename: "Demo_Document.pdf",
-        audit_type: selectedAuditTypes[0] || "Demo",
+        audit_type: demoAuditType,
         risk_report: demoRisks,
+        tagged_clauses: [
+          {
+            clause: "All access logs are stored indefinitely...",
+            frameworks: ["SOC 2"],
+            risk_level: "High",
+            explanation: "...",
+            suggestion: "...",
+            citation: "SOC 2 CC6.6",
+          },
+        ],
       },
     ]);
+    setDnaScore({
+      "SOC 2": 88,
+      SOX: 91,
+    });
     setSelectAuditOption(false);
-    setActiveDashboardRow(null);
+    setActiveDashboardRow({
+      filename: "Demo_Document.pdf",
+      auditType: demoAuditType,
+    });
+    setErrorText("");
   };
 
   const { getRootProps, getInputProps, open } = useDropzone({
@@ -227,7 +266,6 @@ export default function UploadPage() {
     }
   }
 
-
   const taggedClauses = riskReport[0]?.tagged_clauses || [];
 
   return (
@@ -287,6 +325,10 @@ export default function UploadPage() {
                   <div className="flex justify-center gap-4 mt-8">
                     <button
                       onClick={() => {
+                        if (!localStorage.getItem("rg-token")) {
+                          window.location.href = "/login";
+                          return;
+                        }
                         if (selectedAuditTypes.length === 0) {
                           setErrorText(
                             "Please select at least one audit type."
@@ -296,6 +338,7 @@ export default function UploadPage() {
                         setSelectAuditOption(false);
                         setRiskReport([]);
                         setSelectedFile([]);
+                        setIsDemo(false);
                       }}
                       className="px-6 py-2 font-semibold rounded-xl bg-blue-600 cursor-pointer text-white shadow-lg hover:scale-105 transition"
                     >
@@ -358,6 +401,7 @@ export default function UploadPage() {
                     <button
                       type="button"
                       onClick={open}
+                      disabled={isDemo}
                       className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition"
                     >
                       Browse & Select Files
@@ -369,6 +413,7 @@ export default function UploadPage() {
                     </div>
                     <button
                       onClick={handleGetAudit}
+                      disabled={isDemo}
                       className="mt-6 px-8 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition"
                       type="button"
                     >
@@ -397,6 +442,7 @@ export default function UploadPage() {
                               }}
                               className="ml-2 px-2 py-1 cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 rounded text-white hover:bg-red-600 transition"
                               title="Remove file"
+                              disabled={isDemo}
                             >
                               Delete
                             </button>
@@ -565,11 +611,12 @@ export default function UploadPage() {
                   </div>
                 )}
             </div>
-            {dnaScore && (<div className="flex flex-col items-center max-w-7xl">
-              <div className="bg-gray-900 text-white rounded-xl border border-gray-700 mx-auto h-96 overflow-y-auto shadow-lg">
-                <ClauseCam tagged_clauses={taggedClauses}/>
-                {/* Tooltip-like Detail Box */}
-                {/* <div className="mt-6 bg-gray-800 p-4 rounded shadow-lg max-w-xl">
+            {dnaScore && (
+              <div className="flex flex-col items-center max-w-7xl">
+                <div className="bg-gray-900 text-white rounded-xl border border-gray-700 mx-auto h-96 overflow-y-auto shadow-lg">
+                  <ClauseCam tagged_clauses={taggedClauses} />
+                  {/* Tooltip-like Detail Box */}
+                  {/* <div className="mt-6 bg-gray-800 p-4 rounded shadow-lg max-w-xl">
                   <p className="text-white font-semibold">
                     Data will be retained indefinitely for operational purposes
                   </p>
@@ -591,12 +638,12 @@ export default function UploadPage() {
                     operational necessity.
                   </div>
                 </div> */}
-              </div>            
-              <div className="mt-10">
-                <h2 className="mb-3 text-2xl font-medium">DNA Score:</h2>
-                <CircleChart data={dnaScore} />
+                </div>
+                <div className="mt-10">
+                  <h2 className="mb-3 text-2xl font-medium">DNA Score:</h2>
+                  <CircleChart data={dnaScore} />
+                </div>
               </div>
-            </div>
             )}
           </div>
         </main>

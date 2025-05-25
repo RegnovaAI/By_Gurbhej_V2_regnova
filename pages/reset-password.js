@@ -1,25 +1,20 @@
 import { BASE_URL } from "@/utils/api_constants";
-import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 
-export default function Register() {
+export default function ResetPassword() {
   const [form, setForm] = useState({
-    name: "",
-    email: "",
     password: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
 
+  const router = useRouter();
+  const { token } = router.query;
+
   const validate = () => {
     const newErrors = {};
-    if (!form.name.trim()) newErrors.name = "Full name is required";
-    if (!form.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email)) {
-      newErrors.email = "Invalid email address";
-    }
     if (!form.password) {
       newErrors.password = "Password is required";
     } else if (form.password.length < 6) {
@@ -43,17 +38,26 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/register`, {
+      if (!token) {
+        setErrors({ api: "Invalid or missing token" });
+        setLoading(false);
+        return;
+      }
+      const payload = {
+        new_password: form.password,
+        token: token,
+      };
+      const res = await fetch(`${BASE_URL}/reset-password`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
         setErrors({ api: data.detail || "Registration failed" });
       } else {
-        setSuccess("Registration successful! You can now log in.");
+        setSuccess("Password updated successfully");
         setForm({ name: "", email: "", password: "" });
       }
     } catch (err) {
@@ -73,46 +77,15 @@ export default function Register() {
       }}
     >
       <div className="max-w-md w-full bg-gray-800 bg-opacity-90 p-8 rounded-lg shadow-lg">
-        <h3 className="mb-6 text-3xl font-bold text-center">Create an Account</h3>
+        <h3 className="mb-6 text-3xl font-bold text-center">
+          Reset Your Password
+        </h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={form.name}
-              onChange={handleChange}
-              className={`w-full px-4 py-2 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.name ? "border border-red-500" : ""
-              }`}
-              placeholder="Enter your full name"
-            />
-            {errors.name && (
-              <p className="text-red-400 text-sm mt-1">{errors.name}</p>
-            )}
-          </div>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={form.email}
-              onChange={handleChange}
-              className={`w-full px-4 py-2 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.email ? "border border-red-500" : ""
-              }`}
-              placeholder="Enter your email"
-            />
-            {errors.email && (
-              <p className="text-red-400 text-sm mt-1">{errors.email}</p>
-            )}
-          </div>
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium mb-1"
+            >
               Password
             </label>
             <input
@@ -141,16 +114,10 @@ export default function Register() {
               className="w-full bg-[#9135e2] text-white text-lg py-2 px-6 rounded-lg font-semibold cursor-pointer transition-colors"
               disabled={loading}
             >
-              {loading ? "Registering..." : "Register"}
+              {loading ? "updating..." : "Update Password"}
             </button>
           </div>
         </form>
-        <p className="text-center pt-5 text-lg">
-          Already have an account?{" "}
-          <Link href="/login" className="text-[#9135e2] font-bold text-lg">
-            Login
-          </Link>
-        </p>
       </div>
     </div>
   );

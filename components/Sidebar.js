@@ -67,6 +67,11 @@ export default function Sidebar() {
     // { name: 'Help & Support', icon: <SupportIcon />, href: '/support' },
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem('rg-token');
+    window.location.href = '/login';
+  };
+
   return (
     <>
       {/* Mobile hamburger menu */}
@@ -112,6 +117,20 @@ export default function Sidebar() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center cursor-pointer gap-3 px-3 py-2.5 rounded-md hover:bg-red-600 text-gray-200 w-full"
+                >
+                  <span className="text-gray-400">
+                    {/* You can use the SettingsIcon or another icon for logout */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
+                    </svg>
+                  </span>
+                  <span>Logout</span>
+                </button>
+              </li>
             </ul>
           </nav>
         </div>
