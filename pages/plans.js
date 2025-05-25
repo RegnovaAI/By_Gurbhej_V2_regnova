@@ -18,28 +18,34 @@ export default function Plans() {
   const plans = [
     {
       title: "Startup",
-      monthPrice: 49,
+      price: 369,
       content:
         "Perfect for early-stage teams and solo entrepreneurs beginning their compliance journey. Includes access to essential document analysis and reporting tools to ensure you meet basic regulatory requirements efficiently and cost-effectively.",
-      features: ["Basic Support", "1 Project", "5 GB Storage"],
+      features: ["3 uploads", "SOC 2 Lite", "referrals"],
     },
     {
       title: "SMB",
-      monthPrice: 149,
+      price: 2789,
       content:
         "Designed for growing small to medium-sized businesses needing more robust compliance and audit capabilities. This plan offers advanced document scanning, risk scoring, detailed compliance breakdowns, and team collaboration tools to streamline operations.",
-      features: ["Priority Support", "5 Projects", "50 GB Storage"],
+      features: ["50 uploads", "PDF/CSV", "5 frameworks", "alert scheduler"],
     },
     {
-      title: "Mid-Market",
-      monthPrice: 499,
+      title: "Pro",
+      price: 5388,
       content:
         "Tailored for established businesses with higher data volume and more complex compliance workflows. Includes everything in the SMB plan, plus prioritized risk alerts, automated audit trail generation, and integration with your internal systems for seamless operation.",
-      features: ["24/7 Support", "Unlimited Projects", "200 GB Storage"],
+      features: [
+        "Unlimited uploads",
+        "API",
+        "ClauseCam™",
+        "telemetry",
+        "templates",
+      ],
     },
     {
       title: "Enterprise",
-      monthPrice: 1999,
+      price: 9999,
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
       features: ["Dedicated Support", "Custom Solutions", "Unlimited Storage"],
@@ -52,7 +58,12 @@ export default function Plans() {
       icon: "🏦",
       description:
         "Secure bank payments via trusted financial institutions and critical for B2B, invoicing models.",
-      options: ["ACH (US)", "SEPA (EU)", "FPS (UK)", "UPI (India)"],
+      options: [
+        "Everything + Co-Pilot",
+        "AI Agents",
+        "Regulation radar",
+        " on-prem",
+      ],
     },
     {
       title: "Cards",
@@ -96,39 +107,42 @@ export default function Plans() {
         <h1 className="text-4xl font-bold text-center text-white mb-10">
           Membership Plans
         </h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {plans.map((plan, index) => (
             <div
               key={index}
-              className="bg-[#1a2543] shadow-lg rounded-xl p-8 hover:shadow-2xl border border-[#0d276b] hover:shadow-blue-800 transition-all duration-300"
+              className={`
+    relative bg-gradient-to-br from-[#1a2543] via-[#232e4d] to-[#2d3a5c]
+    shadow-xl rounded-2xl p-8 border border-[#2e3a5c]
+    hover:shadow-2xl hover:-translate-y-2 hover:border-[#9135e2]
+    transition-all duration-300 group
+    flex flex-col justify-between
+  `}
             >
-              <h2 className="text-2xl text-white font-bold text-gray-800 mb-4 text-center">
-                {plan.title}
-              </h2>
-              <p className="text-lg text-white font-normal text-[#000f26] mb-6 text-center">
-                {plan.content}
-              </p>
-              <div className="flex flex-col items-center mb-6">
-                <div>
-                  <p className="text-lg text-white flex font-normal text-[#000f26] mb-0">
-                    <strong className="font-bold min-w-24 text-start">
-                      Monthly:
-                    </strong>{" "}
-                    €{plan.monthPrice}
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2 text-center tracking-wide">
+                  {plan.title}
+                </h2>
+                <div className="text-center mb-4 border-b border-blue-900 pb-4">
+                  <p className="text-4xl font-extrabold text-white mb-1">
+                    €{plan.price}
                   </p>
-                  <p className="text-lg text-white flex font-normal text-[#000f26] mb-6">
-                    <strong className="font-bold min-w-24 text-start">
-                      Yearly:
-                    </strong>{" "}
-                    €{plan.monthPrice * 10}
-                  </p>
+                  <p className="text-xs text-blue-300">Valid for 12 months</p>
                 </div>
+                <ul className="flex flex-col gap-2 text-blue-100 text-sm mb-6">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <span className="text-[#9135e2]">✔</span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </div>
               <button
                 onClick={() => openModal(plan)}
-                className="bg-[#9135e2] text-white py-2 px-6 rounded-lg font-semibold cursor-pointer transition-colors"
+                className="w-full cursor-pointer bg-gradient-to-r from-[#9135e2] to-[#6d28d9] text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:from-[#a855f7] hover:to-[#7c3aed] transition-colors mt-4"
               >
-                Select This Plan
+                Subscribe Now
               </button>
             </div>
           ))}
