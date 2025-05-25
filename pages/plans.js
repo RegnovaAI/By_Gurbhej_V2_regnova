@@ -48,7 +48,7 @@ export default function Plans() {
       price: 9999,
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
-      features: ["Dedicated Support", "Custom Solutions", "Unlimited Storage"],
+      features: ["Everything in Pro +","Dedicated Support", "Custom Solutions", "Unlimited Storage"],
     },
   ];
 
