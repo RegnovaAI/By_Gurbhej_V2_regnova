@@ -22,6 +22,7 @@ export default function Plans() {
       content:
         "Perfect for early-stage teams and solo entrepreneurs beginning their compliance journey. Includes access to essential document analysis and reporting tools to ensure you meet basic regulatory requirements efficiently and cost-effectively.",
       features: ["3 uploads", "SOC 2 Lite", "referrals"],
+      planId: "prod_SNncXUOcyGtVbj"
     },
     {
       title: "SMB",
@@ -29,6 +30,7 @@ export default function Plans() {
       content:
         "Designed for growing small to medium-sized businesses needing more robust compliance and audit capabilities. This plan offers advanced document scanning, risk scoring, detailed compliance breakdowns, and team collaboration tools to streamline operations.",
       features: ["50 uploads", "PDF/CSV", "5 frameworks", "alert scheduler"],
+      planId: "prod_SNncP6NFRlmCm4"
     },
     {
       title: "Pro",
@@ -42,13 +44,15 @@ export default function Plans() {
         "telemetry",
         "templates",
       ],
+      planId: "prod_SNndj3fL3wGK2U"
     },
     {
       title: "Enterprise",
       price: 9999,
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
-      features: ["Everything in Pro +","Dedicated Support", "Custom Solutions", "Unlimited Storage"],
+      features: ["Dedicated Support", "Custom Solutions", "Unlimited Storage"],
+      planId: "prod_SNndH85KqeF7Qw"
     },
   ];
 
@@ -93,6 +97,17 @@ export default function Plans() {
       options: ["Klarna", "Affirm", "Afterpay"],
     },
   ];
+
+  const handleSubscribe = async (priceId) => {
+    const res = await fetch("http://localhost:8000/create-checkout-session/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "test@test.com", amount: 379 }),
+    });
+
+    const data = await res.json();
+    window.location.href = data.checkout_url;
+  };
 
   return (
     <div
@@ -139,7 +154,7 @@ export default function Plans() {
                 </ul>
               </div>
               <button
-                onClick={() => openModal(plan)}
+                onClick={() => handleSubscribe(plan.planId)}
                 className="w-full cursor-pointer bg-gradient-to-r from-[#9135e2] to-[#6d28d9] text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:from-[#a855f7] hover:to-[#7c3aed] transition-colors mt-4"
               >
                 Subscribe Now

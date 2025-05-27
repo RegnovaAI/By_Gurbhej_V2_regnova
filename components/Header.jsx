@@ -74,6 +74,9 @@ export default function Header() {
           <Link href="/plans" className="hover:text-blue-300 text-lg">
             Pricing
           </Link>
+          <Link href="/contact" className="hover:text-blue-300 text-lg">
+            Contact us
+          </Link>
           {hasToken ? (
             <Link href="/profile" className="hover:text-blue-300 text-lg">
               Profile
@@ -171,6 +174,13 @@ export default function Header() {
           </Link>
           <Link
             href="/plans"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="hover:text-blue-300 text-xl font-medium"
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/contact"
             onClick={() => setIsMobileMenuOpen(false)}
             className="hover:text-blue-300 text-xl font-medium"
           >
