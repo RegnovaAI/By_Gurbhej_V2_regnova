@@ -53,9 +53,7 @@ export default function Contact() {
             <div className="">
                 <h2 className="text-4xl font-bold mb-2">Contact Us</h2>
                 <p className="text-gray-300">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Reiciendis dignissimos eaque doloremque, nulla mollitia facilis
-                temporibus ullam voluptas nostrum consequatur?
+                Whether you're curious about our product, need support, or just want to say hello — we're here for you.
                 </p>
             </div>
 
