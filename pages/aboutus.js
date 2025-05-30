@@ -108,7 +108,7 @@ export default function Aboutus() {
               <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mr-4">
                 <Target className="w-6 h-6 text-blue-400" />
               </div>
-              <h2 className="text-3xl font-bold text-blue-400">Mission Statement</h2>
+              <h2 className="text-3xl font-bold text-blue-400">Mission</h2>
             </div>
             <p className="text-gray-300 leading-relaxed text-lg">
               RegnovaAI's mission is to revolutionize enterprise compliance by deploying cutting-edge AI 
@@ -131,7 +131,7 @@ export default function Aboutus() {
               <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mr-4">
                 <Eye className="w-6 h-6 text-purple-400" />
               </div>
-              <h2 className="text-3xl font-bold text-purple-400">Vision Statement</h2>
+              <h2 className="text-3xl font-bold text-purple-400">Vision</h2>
             </div>
             <p className="text-gray-300 leading-relaxed text-lg">
               Our vision is to become the global standard in AI-driven regulatory co-pilots, helping 
@@ -141,7 +141,7 @@ export default function Aboutus() {
             </p>
             <div className="mt-6 p-4 bg-gray-700/50 rounded-lg">
               <p className="text-gray-300">
-                As we scale, RegnovaAI will be the platform of choice for unicorns and Fortune 500s alike, 
+                As we scale, RegnovaAI will be the platform of choice for companies, 
                 redefining how the world sees compliance: not as a cost, but as a strategic advantage.
               </p>
             </div>
