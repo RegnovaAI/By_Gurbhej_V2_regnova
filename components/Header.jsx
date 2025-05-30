@@ -32,7 +32,7 @@ export default function Header() {
 
   return (
     <header
-      className={`absolute w-full text-white px-4 py-3 ${
+      className={`absolute z-50 w-full text-white px-4 py-3 ${
         isMobileMenuOpen ? "bg-[#3e5074]" : ""
       } transition-all duration-300`}
     >
@@ -62,7 +62,7 @@ export default function Header() {
           <Link href="/aboutus" className="hover:text-blue-300 text-lg">
             About us
           </Link>
-          <Link href="/mission" className="hover:text-blue-300 text-lg">
+          {/* <Link href="/mission" className="hover:text-blue-300 text-lg">
             Mission
           </Link>
           <Link href="/vision" className="hover:text-blue-300 text-lg">
@@ -70,7 +70,7 @@ export default function Header() {
           </Link>
           <Link href="/career" className="hover:text-blue-300 text-lg">
             Career
-          </Link>
+          </Link> */}
           <Link href="/plans" className="hover:text-blue-300 text-lg">
             Pricing
           </Link>

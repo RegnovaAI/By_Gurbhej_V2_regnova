@@ -10,6 +10,7 @@ import HeroSection from "@/components/HeroSection";
 import JSZip from "jszip";
 import CircleChart from "@/components/CircularChart";
 import ClauseCam from "@/components/ClausesCard";
+import Link from "next/link";
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState([]);
@@ -295,7 +296,7 @@ export default function UploadPage() {
               {selectAuditOption && (
                 <div className="max-w-2xl mx-auto">
                   <h3 className="mb-5 text-3xl font-semibold text-white-200">
-                    Select Audit Types
+                    Audit Types
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
                     {auditTypes.map((auditType) => {
@@ -307,14 +308,14 @@ export default function UploadPage() {
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer bg-[#192447] border-[#2e3a5e] hover:border-blue-400
                       `}
                         >
-                          <input
+                          {/* <input
                             type="checkbox"
                             id={`checkbox-${auditType}`}
                             value={auditType}
                             checked={isChecked}
                             onChange={() => toggleAuditType(auditType)}
                             className="form-checkbox w-5 h-5 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
-                          />
+                          /> */}
                           <span className="text-white font-semibold">
                             {auditType}
                           </span>
@@ -323,33 +324,36 @@ export default function UploadPage() {
                     })}
                   </div>
                   <div className="flex justify-center gap-4 mt-8">
+                    <Link
+                      href="/profile">
                     <button
-                      onClick={() => {
-                        if (!localStorage.getItem("rg-token")) {
-                          window.location.href = "/login";
-                          return;
-                        }
-                        if (selectedAuditTypes.length === 0) {
-                          setErrorText(
-                            "Please select at least one audit type."
-                          );
-                          return;
-                        }
-                        setSelectAuditOption(false);
-                        setRiskReport([]);
-                        setSelectedFile([]);
-                        setIsDemo(false);
-                      }}
+                      // onClick={() => {
+                      //   if (!localStorage.getItem("rg-token")) {
+                      //     window.location.href = "/login";
+                      //     return;
+                      //   }
+                      //   if (selectedAuditTypes.length === 0) {
+                      //     setErrorText(
+                      //       "Please select at least one audit type."
+                      //     );
+                      //     return;
+                      //   }
+                      //   setSelectAuditOption(false);
+                      //   setRiskReport([]);
+                      //   setSelectedFile([]);
+                      //   setIsDemo(false);
+                      // }}
                       className="px-6 py-2 font-semibold rounded-xl bg-blue-600 cursor-pointer text-white shadow-lg hover:scale-105 transition"
                     >
                       Continue
                     </button>
-                    <button
+                    </Link>
+                    {/* <button
                       onClick={loadDemoFile}
                       className="px-6 py-2 font-semibold rounded-xl cursor-pointer bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg hover:scale-105 transition"
                     >
-                      Try Demo
-                    </button>
+                      Try Demo File
+                    </button> */}
                   </div>
                   {errorText && (
                     <p className="text-red-400 text-lg mt-4">{errorText}</p>

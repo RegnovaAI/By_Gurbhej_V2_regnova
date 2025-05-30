@@ -57,8 +57,8 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   
   const menuItems = [
-    { name: 'Dashboard', icon: <DashboardIcon />, href: '/' },
-    { name: 'My Profile', icon: <ProjectsIcon />, href: '/profile' },
+    { name: 'Home', icon: <DashboardIcon />, href: '/' },
+    { name: 'My Projects', icon: <ProjectsIcon />, href: '/profile' },
     // { name: 'My Audits', icon: <AuditsIcon />, href: '/audits' },
     // { name: 'Document Vault', icon: <DocumentIcon />, href: '/documents' },
     // { name: 'Risk Reports', icon: <ReportsIcon />, href: '/reports' },
@@ -96,7 +96,7 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside 
-        className={`bg-[#1e1e2d] w-64 fixed inset-y-0 left-0 z-20 transform transition-transform duration-300 ease-in-out sidebar-scrollbar overflow-y-auto
+        className={`bg-[#1e1e2d] bg-gray-800 w-64 fixed inset-y-0 left-0 z-20 transform transition-transform duration-300 ease-in-out sidebar-scrollbar overflow-y-auto
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:z-0`}
       >
         <div className="p-5">
