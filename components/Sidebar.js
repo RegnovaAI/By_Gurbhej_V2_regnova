@@ -59,14 +59,20 @@ export default function Sidebar() {
   const menuItems = [
     { name: 'Home', icon: <DashboardIcon />, href: '/' },
     { name: 'My Projects', icon: <ProjectsIcon />, href: '/profile' },
-    // { name: 'My Audits', icon: <AuditsIcon />, href: '/audits' },
-    // { name: 'Document Vault', icon: <DocumentIcon />, href: '/documents' },
-    // { name: 'Risk Reports', icon: <ReportsIcon />, href: '/reports' },
+    { name: 'My Audits', icon: <AuditsIcon />, href: '/audits' },
+    { name: 'Document Vault', icon: <DocumentIcon />, href: '/documents' },
+    { name: 'Risk Reports', icon: <ReportsIcon />, href: '/reports' },
     // { name: 'My Profile', icon: <ProfileIcon />, href: '/my-profile' },
     // { name: 'Settings', icon: <SettingsIcon />, href: '/settings' },
-    // { name: 'Help & Support', icon: <SupportIcon />, href: '/support' },
+    { name: 'Help & Support', icon: <SupportIcon />, href: '/help' },
   ];
 
+/*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Log the user out by removing the `rg-token` from local storage, and then
+   * redirect them to the login page.
+   */
+/*******  63f23e21-e630-417e-b0fb-fcdea559041f  *******/
   const handleLogout = () => {
     localStorage.removeItem('rg-token');
     window.location.href = '/login';

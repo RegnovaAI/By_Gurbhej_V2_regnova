@@ -11,6 +11,7 @@ import JSZip from "jszip";
 import CircleChart from "@/components/CircularChart";
 import ClauseCam from "@/components/ClausesCard";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState([]);
@@ -269,6 +270,8 @@ export default function UploadPage() {
 
   const taggedClauses = riskReport[0]?.tagged_clauses || [];
 
+  const router = useRouter()
+
   return (
     <div
       className="pt-40 min-h-screen flex flex-col bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white px-4 py-10"
@@ -324,30 +327,19 @@ export default function UploadPage() {
                     })}
                   </div>
                   <div className="flex justify-center gap-4 mt-8">
-                    <Link
-                      href="/profile">
+                    
                     <button
-                      // onClick={() => {
-                      //   if (!localStorage.getItem("rg-token")) {
-                      //     window.location.href = "/login";
-                      //     return;
-                      //   }
-                      //   if (selectedAuditTypes.length === 0) {
-                      //     setErrorText(
-                      //       "Please select at least one audit type."
-                      //     );
-                      //     return;
-                      //   }
-                      //   setSelectAuditOption(false);
-                      //   setRiskReport([]);
-                      //   setSelectedFile([]);
-                      //   setIsDemo(false);
-                      // }}
+                      onClick={() => {
+                        if (!localStorage.getItem("rg-token")) {
+                          window.location.href = "/login";
+                          return;
+                        }
+                        router.push('profile')
+                      }}
                       className="px-6 py-2 font-semibold rounded-xl bg-blue-600 cursor-pointer text-white shadow-lg hover:scale-105 transition"
                     >
                       Continue
                     </button>
-                    </Link>
                     {/* <button
                       onClick={loadDemoFile}
                       className="px-6 py-2 font-semibold rounded-xl cursor-pointer bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg hover:scale-105 transition"

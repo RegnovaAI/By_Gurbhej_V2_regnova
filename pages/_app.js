@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
-  const pagesWithHeader = ["/profile"];
+  const pagesWithHeader = ["/profile", "/audit-view", "/documents", "/help", "/audits", "/reports"];
   const showHeader = !pagesWithHeader.includes(router.pathname);
   return (
     <>
