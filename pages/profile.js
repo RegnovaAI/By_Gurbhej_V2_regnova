@@ -1,5 +1,3 @@
-"use client";
-
 import Sidebar from "../components/Sidebar";
 import { Search, User, ChevronRight, X, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -7,7 +5,7 @@ import { auditTypes } from "@/utils/constant";
 import { useDropzone } from "react-dropzone";
 import Link from "next/link";
 import { BASE_URL } from "@/utils/api_constants";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast"; // <-- Add Toaster import
 
 function formatDate(dateString) {
   if (!dateString) return "";
@@ -29,7 +27,7 @@ export default function Dashboard() {
   const [editUserData, setEditUserData] = useState({
     name: "",
     email: "",
-    // company: "",
+    company_name: "",
     // role: "",
   });
 
@@ -102,7 +100,7 @@ export default function Dashboard() {
     setEditUserData({
       name: user?.name || "",
       email: user?.email || "",
-      // company: user?.company || "",
+      company_name: user?.company_name || "",
       // role: user?.role || "",
     });
     setIsEditUserOpen(true);
@@ -297,32 +295,32 @@ export default function Dashboard() {
 
   // Upload docs
   const handleUploadDocs = async (e) => {
-  e.preventDefault();
-  if (!uploadFiles.length) {
-    toast.error("Please select files to upload.");
-    return;
-  }
-  try {
-    const token = localStorage.getItem("rg-token");
-    const form = new FormData();
-    uploadFiles.forEach((file) => form.append("files", file)); // <-- key must be "files"
-    const res = await fetch(
-      `${BASE_URL}/project/${projectToUpload.id}/upload-files`, // <-- match your FastAPI route
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
-      }
-    );
-    if (!res.ok) throw new Error("Failed to upload documents");
-    toast.success("Documents uploaded successfully!");
-    setIsUploadModalOpen(false);
-    setUploadFiles([]);
-    setProjectToUpload(null);
-  } catch (err) {
-    toast.error(err.message || "Failed to upload documents");
-  }
-};
+    e.preventDefault();
+    if (!uploadFiles.length) {
+      toast.error("Please select files to upload.");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("rg-token");
+      const form = new FormData();
+      uploadFiles.forEach((file) => form.append("files", file)); // <-- key must be "files"
+      const res = await fetch(
+        `${BASE_URL}/project/${projectToUpload.id}/upload-files`, // <-- match your FastAPI route
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: form,
+        }
+      );
+      if (!res.ok) throw new Error("Failed to upload documents");
+      toast.success("Documents uploaded successfully!");
+      setIsUploadModalOpen(false);
+      setUploadFiles([]);
+      setProjectToUpload(null);
+    } catch (err) {
+      toast.error(err.message || "Failed to upload documents");
+    }
+  };
 
   // Edit project modal
   const openEditProjectModal = (project) => {
@@ -333,26 +331,38 @@ export default function Dashboard() {
   // Edit project handler
   const handleEditProject = async (e) => {
     e.preventDefault();
+    if (!editProjectData?.name) return;
+
+    const formData = new FormData();
+    formData.append("name", editProjectData.name);
+
+    (editProjectData?.audittypes || []).forEach((type) => {
+      formData.append("audittypes", type);
+    });
+
+    selectedFile.forEach((file) => {
+      formData.append("files", file);
+    });
+
     try {
       const token = localStorage.getItem("rg-token");
       const res = await fetch(`${BASE_URL}/project/${editProjectData.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(editProjectData),
+        body: formData,
+         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to update project");
-      const updated = await res.json();
-      setProjects((prev) =>
-        prev.map((p) => (p.id === updated.id ? updated : p))
-      );
-      toast.success("Project updated successfully!");
-      setIsEditProjectOpen(false);
-      setEditProjectData(null);
-    } catch (err) {
-      toast.error(err.message || "Failed to update project");
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Project updated successfully");
+        setIsEditProjectOpen(false);
+        // refresh data or call a refetch here
+      } else {
+        toast.error(data.detail || "Failed to update project");
+      }
+    } catch (error) {
+      console.error("Error updating project:", error);
+      toast.error("Something went wrong");
     }
   };
 
@@ -371,7 +381,7 @@ export default function Dashboard() {
           <p className="mb-4 text-lg">No projects found.</p>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-500 transition-colors"
+            className="px-4 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-500 transition-colors cursor-pointer"
           >
             + Add Project
           </button>
@@ -389,25 +399,24 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-semibold mb-1">{project.name}</h3>
                 <div className="text-gray-400 text-sm mb-3">
-                  Created on {formatDate(project.createdDate || project.created_at)}
+                  Created on{" "}
+                  {formatDate(project.createdDate || project.created_at)}
                 </div>
                 <div className="flex space-x-4">
                   <Link
                     href={{
                       pathname: "/audit-view",
                       query: {
-                        projectName: project.name,
-                        department: project.department,
-                        riskLevel: project.riskLevel,
+                        projectId: project.id
                       },
                     }}
                   >
-                    <button className="text-blue-400 hover:text-blue-300 text-sm">
-                      View Audits
+                    <button className="text-blue-400 hover:text-blue-300 text-sm cursor-pointer">
+                      RegnovaPilot<sup>TM</sup>
                     </button>
                   </Link>
                   <button
-                    className="text-blue-400 hover:text-blue-300 text-sm"
+                    className="text-blue-400 hover:text-blue-300 text-sm cursor-pointer"
                     onClick={() => {
                       setIsUploadModalOpen(true);
                       setProjectToUpload(project);
@@ -417,13 +426,13 @@ export default function Dashboard() {
                     Upload Docs
                   </button>
                   <button
-                    className="text-yellow-400 hover:text-yellow-300 text-sm"
+                    className="text-yellow-400 hover:text-yellow-300 text-sm cursor-pointer"
                     onClick={() => openEditProjectModal(project)}
                   >
                     Edit
                   </button>
                   <button
-                    className="text-red-400 hover:text-red-300 text-sm"
+                    className="text-red-400 hover:text-red-300 text-sm cursor-pointer"
                     onClick={() => {
                       setIsDeleteModalOpen(true);
                       setProjectToDelete(project);
@@ -459,8 +468,8 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col w-screen h-screen lg:flex-row">
+      <Toaster position="top-right" /> {/* <-- Add Toaster here */}
       <Sidebar />
-
       <div className="bg-gray-900 text-white flex-1 overflow-y-auto">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
@@ -503,11 +512,13 @@ export default function Dashboard() {
                     <div className="text-gray-400 mb-1">
                       {user?.role || "Compliance Manager"}
                     </div>
-                    <div className="text-gray-400 mb-3">
-                      {user?.company || "Acme Corporation"}
-                    </div>
+                    {user?.company_name && (
+                      <div className="text-gray-400 mb-3">
+                        {user?.company_name || ""}
+                      </div>
+                    )}
                     <button
-                      className="text-blue-400 hover:text-blue-300 text-sm"
+                      className="text-blue-400 hover:text-blue-300 text-sm cursor-pointer"
                       onClick={openEditUserModal}
                     >
                       Edit Profile
@@ -515,9 +526,10 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-4 text-gray-400 text-sm">
-                  <span>email: {user?.email || "jane.doe@acme.com"}</span>
+                  <span>email: {user?.email || ""}</span>
                   <span className="ml-8">
-                    {user?.lastLogin || "May 25, 2025 — 10:14 AM"}
+                    {console.log("user?.created_at", user?.created_at)}
+                    {formatDate(user?.created_at) || "May 25, 2025 — 10:14 AM"}
                   </span>
                 </div>
               </div>
@@ -527,7 +539,7 @@ export default function Dashboard() {
           <div className="flex justify-end">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-500 mb-4 transition-colors"
+              className="px-4 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-500 mb-4 transition-colors cursor-pointer"
             >
               + Add Project
             </button>
@@ -537,7 +549,6 @@ export default function Dashboard() {
           <div className="space-y-4">{renderProjects()}</div>
         </div>
       </div>
-
       {/* Add Project Modal */}
       {isModalOpen && (
         <div
@@ -554,7 +565,7 @@ export default function Dashboard() {
               </h2>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -640,7 +651,7 @@ export default function Dashboard() {
                     type="button"
                     onClick={open}
                     disabled={isDemo}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition"
+                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition cursor-pointer"
                   >
                     Browse & Select Files
                   </button>
@@ -655,13 +666,13 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                    className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors"
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors cursor-pointer"
                   >
                     Create Project
                   </button>
@@ -671,7 +682,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
       {/* Edit User Modal */}
       {isEditUserOpen && (
         <div
@@ -686,7 +696,7 @@ export default function Dashboard() {
               <h2 className="text-xl font-semibold text-white">Edit Profile</h2>
               <button
                 onClick={() => setIsEditUserOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -708,8 +718,9 @@ export default function Dashboard() {
                   const updated = await res.json();
                   setUser(updated);
                   setIsEditUserOpen(false);
+                  toast.success("Profile updated successfully!");
                 } catch (err) {
-                  alert("Failed to update user");
+                  toast.error("Failed to update user");
                 }
               }}
             >
@@ -733,37 +744,30 @@ export default function Dashboard() {
                   }
                 />
               </div>
-              {/* <div className="mb-4">
-                <label className="block text-gray-300 mb-1">Company</label>
+              <div className="mb-4">
+                <label className="block text-gray-300 mb-1">Company Name</label>
                 <input
                   className="w-full px-3 py-2 rounded bg-gray-700 text-white"
-                  value={editUserData.company}
+                  value={editUserData.company_name}
                   onChange={(e) =>
-                    setEditUserData({ ...editUserData, company: e.target.value })
+                    setEditUserData({
+                      ...editUserData,
+                      company_name: e.target.value,
+                    })
                   }
                 />
               </div>
-              <div className="mb-6">
-                <label className="block text-gray-300 mb-1">Role</label>
-                <input
-                  className="w-full px-3 py-2 rounded bg-gray-700 text-white"
-                  value={editUserData.role}
-                  onChange={(e) =>
-                    setEditUserData({ ...editUserData, role: e.target.value })
-                  }
-                />
-              </div> */}
               <div className="flex space-x-3">
                 <button
                   type="button"
                   onClick={() => setIsEditUserOpen(false)}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors cursor-pointer"
                 >
                   Save
                 </button>
@@ -772,7 +776,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
       {/* Delete Project Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
@@ -787,13 +790,13 @@ export default function Dashboard() {
             <div className="flex space-x-3">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteProject}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors"
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors cursor-pointer"
               >
                 Delete
               </button>
@@ -801,7 +804,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
       {/* Upload Docs Modal */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
@@ -847,7 +849,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={openUpload}
                   disabled={isDemo}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition"
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition cursor-pointer"
                 >
                   Browse & Select Files
                 </button>
@@ -861,13 +863,13 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setIsUploadModalOpen(false)}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors cursor-pointer"
                 >
                   Upload
                 </button>
@@ -876,7 +878,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
       {isEditProjectOpen && (
         <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
           <div
@@ -887,7 +888,7 @@ export default function Dashboard() {
               <h2 className="text-xl font-semibold text-white">Edit Project</h2>
               <button
                 onClick={() => setIsEditProjectOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -989,7 +990,7 @@ export default function Dashboard() {
                     type="button"
                     onClick={open}
                     disabled={isDemo}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition"
+                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition cursor-pointer"
                   >
                     Browse & Select Files
                   </button>
@@ -1003,13 +1004,13 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setIsEditProjectOpen(false)}
-                    className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                    className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors"
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors cursor-pointer"
                   >
                     Save
                   </button>
