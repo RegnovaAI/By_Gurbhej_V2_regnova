@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 import Link from "next/link";
 import { BASE_URL } from "@/utils/api_constants";
 import { toast, Toaster } from "react-hot-toast"; // <-- Add Toaster import
+import ProfileImage from "@/components/ProfileImage";
 
 function formatDate(dateString) {
   if (!dateString) return "";
@@ -397,13 +398,13 @@ export default function Dashboard() {
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-semibold mb-1">{project.name}</h3>
+                <Link href={`/project/${project.id}`}><h3 className="text-lg font-semibold mb-1">{project.name}</h3></Link>
                 <div className="text-gray-400 text-sm mb-3">
                   Created on{" "}
                   {formatDate(project.createdDate || project.created_at)}
                 </div>
                 <div className="flex space-x-4">
-                  <Link
+                  {/* <Link
                     href={{
                       pathname: "/audit-view",
                       query: {
@@ -414,7 +415,7 @@ export default function Dashboard() {
                     <button className="text-blue-400 hover:text-blue-300 text-sm cursor-pointer">
                       RegnovaPilot<sup>TM</sup>
                     </button>
-                  </Link>
+                  </Link> */}
                   <button
                     className="text-blue-400 hover:text-blue-300 text-sm cursor-pointer"
                     onClick={() => {
@@ -493,7 +494,7 @@ export default function Dashboard() {
           {/* Profile Section */}
           <div className="mb-8">
             <div className="flex items-start space-x-4">
-              <div className="w-16 h-16 bg-gray-700 rounded-full overflow-hidden">
+              {/* <div className="w-16 h-16 bg-gray-700 rounded-full overflow-hidden">
                 <img
                   src={
                     user?.avatar ||
@@ -502,12 +503,13 @@ export default function Dashboard() {
                   alt={user?.name || "User"}
                   className="w-full h-full object-cover"
                 />
-              </div>
+              </div> */}
+              {user && <ProfileImage user={user} />}
               <div className="flex-1">
                 <div className="flex items-start justify-between">
                   <div>
                     <h1 className="text-2xl font-semibold mb-1">
-                      {user?.name || "Jane Doe"}
+                      {user?.name || ""}
                     </h1>
                     <div className="text-gray-400 mb-1">
                       {user?.role || "Compliance Manager"}
@@ -526,11 +528,11 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-4 text-gray-400 text-sm">
-                  <span>email: {user?.email || ""}</span>
-                  <span className="ml-8">
+                  <span>Email: {user?.email || ""}</span>
+                  {/* <span className="ml-8">
                     {console.log("user?.created_at", user?.created_at)}
                     {formatDate(user?.created_at) || "May 25, 2025 — 10:14 AM"}
-                  </span>
+                  </span> */}
                 </div>
               </div>
             </div>
