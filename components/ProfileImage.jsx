@@ -54,7 +54,7 @@ export default function ProfileImage({ user, onAvatarUpdate }) {
           <img
             src={
               `${BASE_URL}${avatarUrl}` ||
-              "https://images.pexels.com/photos/1181293/pexels-photo-1181293.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+              "/regnovaai-logo.png"
             }
             alt={user?.name || "User"}
             className="w-full h-full object-cover"

@@ -416,7 +416,7 @@ export default function Dashboard() {
                       RegnovaPilot<sup>TM</sup>
                     </button>
                   </Link> */}
-                  <button
+                  {/* <button
                     className="text-blue-400 hover:text-blue-300 text-sm cursor-pointer"
                     onClick={() => {
                       setIsUploadModalOpen(true);
@@ -425,7 +425,7 @@ export default function Dashboard() {
                     }}
                   >
                     Upload Docs
-                  </button>
+                  </button> */}
                   <button
                     className="text-yellow-400 hover:text-yellow-300 text-sm cursor-pointer"
                     onClick={() => openEditProjectModal(project)}
