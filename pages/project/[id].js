@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { generatePDFReport } from "@/utils/generatePDF";
+import { auditTypes } from "@/utils/constant";
 
 async function downloadReportsAsPdfOrZip(results) {
   if (!results || results.length === 0) return;
@@ -27,7 +28,10 @@ async function downloadReportsAsPdfOrZip(results) {
 
     try {
       const blob = await generatePDFReport(filename, risk_report, true); // returnBlob = true
-      const pdfFilename = `${filename.replace(/\.[^/.]+$/, "")}-Audit-Report.pdf`;
+      const pdfFilename = `${filename.replace(
+        /\.[^/.]+$/,
+        ""
+      )}-Audit-Report.pdf`;
       zip.file(pdfFilename, blob);
     } catch (e) {
       console.error("PDF generation failed for:", filename, e);
@@ -174,7 +178,7 @@ export default function ProjectDetails() {
   };
 
   // Enhanced error handling for download
-  
+
   // const downloadFiles = async (auditId) => {
   //   if (!auditId) {
   //     toast.error("Please select an audit type.");
@@ -227,40 +231,40 @@ export default function ProjectDetails() {
   // };
 
   const downloadFiles = async (auditId) => {
-  if (!auditId) {
-    toast.error("Please select an audit type.");
-    return;
-  }
+    if (!auditId) {
+      toast.error("Please select an audit type.");
+      return;
+    }
 
-  setDownloadLoading(true);
+    setDownloadLoading(true);
 
-  try {
-    const token = localStorage.getItem("rg-token");
-    const response = await fetch(
-      `${BASE_URL}/project/${projectDetails.id}/audit/${auditId}/risk-report`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    try {
+      const token = localStorage.getItem("rg-token");
+      const response = await fetch(
+        `${BASE_URL}/project/${projectDetails.id}/audit/${auditId}/risk-report`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    if (!response.ok) alert("Failed to fetch risk report");
+      if (!response.ok) alert("Failed to fetch risk report");
 
-    const data = await response.json(); // expect { results: [...], dna_score: 87 }
+      const data = await response.json(); // expect { results: [...], dna_score: 87 }
 
-    await downloadReportsAsPdfOrZip(data.results);
-    toast.success("Risk report downloaded!");
+      await downloadReportsAsPdfOrZip(data.results);
+      toast.success("Risk report downloaded!");
 
-    fetchProjectDetails(projectDetails.id);
-  } catch (error) {
-    console.error("Error fetching risk report:", error);
-    toast.error(error?.message || "Download failed.");
-  } finally {
-    setDownloadLoading(false);
-  }
-};
+      fetchProjectDetails(projectDetails.id);
+    } catch (error) {
+      console.error("Error fetching risk report:", error);
+      toast.error(error?.message || "Download failed.");
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
 
   const handleAddAudit = async (e) => {
     e.preventDefault();
@@ -398,7 +402,7 @@ export default function ProjectDetails() {
                             Downloading...
                           </span>
                         ) : (
-                          "Download Report"
+                          "Run and Download Report"
                         )}
                       </button>
                       {/* <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-md text-sm">
@@ -519,7 +523,7 @@ export default function ProjectDetails() {
               Add Audit Type
             </h2>
             <form onSubmit={handleAddAudit}>
-              <input
+              {/* <input
                 type="text"
                 className="w-full px-4 py-2 rounded bg-gray-700 text-white mb-4"
                 placeholder="Audit Type Name"
@@ -527,7 +531,31 @@ export default function ProjectDetails() {
                 onChange={(e) => setAuditTypeName(e.target.value)}
                 disabled={addAuditLoading}
                 autoFocus
-              />
+              /> */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                {auditTypes.map((type) => (
+                  <label
+                    key={type}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border ${
+                      auditTypeName === type
+                        ? "bg-purple-700 border-purple-500"
+                        : "bg-[#192447] border-[#2e3a5e] hover:border-blue-400"
+                    }`}
+                    onClick={() => setAuditTypeName(type)}
+                  >
+                    <input
+                      type="radio"
+                      name="auditTypeRadio"
+                      value={type}
+                      checked={auditTypeName === type}
+                      onChange={() => setAuditTypeName(type)}
+                      className="form-radio accent-purple-500"
+                      disabled={addAuditLoading}
+                    />
+                    <span className="text-white font-semibold">{type}</span>
+                  </label>
+                ))}
+              </div>
               <div className="flex space-x-3">
                 <button
                   type="button"
