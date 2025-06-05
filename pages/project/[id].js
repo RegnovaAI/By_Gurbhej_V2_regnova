@@ -249,10 +249,14 @@ export default function ProjectDetails() {
           },
         }
       );
-
-      if (!response.ok) alert("Failed to fetch risk report");
-
+      if (!response.ok) console.log("Failed to fetch risk report");
+      
       const data = await response.json(); // expect { results: [...], dna_score: 87 }
+      
+      if(data?.warning) {
+        alert(data?.warning)
+        return
+      }
 
       await downloadReportsAsPdfOrZip(data.results);
       toast.success("Risk report downloaded!");

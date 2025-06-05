@@ -308,7 +308,7 @@ export default function UploadPage() {
                         <label
                           key={auditType}
                           htmlFor={`checkbox-${auditType}`}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer bg-[#192447] border-[#2e3a5e] hover:border-blue-400
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#192447] border-[#2e3a5e] hover:border-blue-400
                       `}
                         >
                           {/* <input

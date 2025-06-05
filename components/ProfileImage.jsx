@@ -44,7 +44,7 @@ export default function ProfileImage({ user, onAvatarUpdate }) {
   };
 
   return (
-    <div className="relative w-16 h-16">
+    <div className="relative w-20 h-20">
       <div className="w-full h-full bg-gray-700 rounded-full overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center w-full h-full">

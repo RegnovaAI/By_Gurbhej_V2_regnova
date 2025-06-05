@@ -350,7 +350,7 @@ export default function Dashboard() {
       const res = await fetch(`${BASE_URL}/project/${editProjectData.id}`, {
         method: "PUT",
         body: formData,
-         headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -398,7 +398,11 @@ export default function Dashboard() {
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div>
-                <Link href={`/project/${project.id}`}><h3 className="text-lg font-semibold mb-1">{project.name}</h3></Link>
+                <Link href={`/project/${project.id}`}>
+                  <h3 className="text-xl underline font-semibold mb-1">
+                    {project.name}
+                  </h3>
+                </Link>
                 <div className="text-gray-400 text-sm mb-3">
                   Created on{" "}
                   {formatDate(project.createdDate || project.created_at)}
@@ -446,6 +450,7 @@ export default function Dashboard() {
               <div className="flex space-x-12">
                 <div className="flex items-center space-x-2">
                   <div>
+                    <Link href={`/project/${project.id}`}>
                     <div
                       className={`font-medium mb-1 ${
                         project.statusColor || "text-blue-400"
@@ -453,11 +458,14 @@ export default function Dashboard() {
                     >
                       {project.status || "In Progress"}
                     </div>
-                    <div className="text-gray-400 text-sm">
-                      {project.status || "In Progress"}
-                    </div>
+                      <div className="text-gray-400 text-sm cursor-pointer">
+                        {project.status || "In Progress"}
+                      </div>
+                    </Link>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  <Link href={`/project/${project.id}`}>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </Link>
                 </div>
               </div>
             </div>
@@ -474,7 +482,7 @@ export default function Dashboard() {
       <div className="bg-gray-900 text-white flex-1 overflow-y-auto">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-          <div className="text-xl font-semibold">Dashboard</div>
+          <div className="text-xl font-semibold">Dassh</div>
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
