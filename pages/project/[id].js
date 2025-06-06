@@ -6,7 +6,6 @@ import { BASE_URL } from "@/utils/api_constants";
 import { useRouter } from "next/router";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
-// import { ChevronDownIcon } from '@heroicons/react/24/outline'
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { generatePDFReport } from "@/utils/generatePDF";
@@ -54,6 +53,7 @@ export default function ProjectDetails() {
   const [isAddAuditModalOpen, setIsAddAuditModalOpen] = useState(false);
   const [addAuditLoading, setAddAuditLoading] = useState(false);
   const [auditTypeName, setAuditTypeName] = useState("");
+  const [warningMsg, setWarningMsg] = useState(""); // For warning modal
 
   const removeUploadFile = (index) => {
     setUploadFiles((prev) => prev.filter((_, i) => i !== index));
@@ -178,58 +178,6 @@ export default function ProjectDetails() {
   };
 
   // Enhanced error handling for download
-
-  // const downloadFiles = async (auditId) => {
-  //   if (!auditId) {
-  //     toast.error("Please select an audit type.");
-  //     return;
-  //   }
-
-  //   setDownloadLoading(true);
-
-  //   try {
-  //     const token = localStorage.getItem("rg-token");
-  //     const response = await fetch(
-  //       `${BASE_URL}/project/${projectDetails.id}/audit/${auditId}/risk-report`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to fetch risk report");
-  //     }
-
-  //     const disposition = response.headers.get("Content-Disposition");
-  //     let filename = "risk-report.json";
-  //     if (disposition && disposition.includes("filename=")) {
-  //       const match = disposition.match(/filename="?([^"]+)"?/);
-  //       if (match?.[1]) filename = match[1];
-  //     }
-
-  //     const blob = await response.blob();
-  //     const url = window.URL.createObjectURL(blob);
-  //     const a = document.createElement("a");
-  //     a.href = url;
-  //     a.download = filename;
-  //     document.body.appendChild(a);
-  //     a.click();
-  //     a.remove();
-  //     window.URL.revokeObjectURL(url);
-
-  //     toast.success("Risk report downloaded!");
-  //     fetchProjectDetails(projectDetails.id);
-  //   } catch (error) {
-  //     console.error("Error fetching risk report:", error);
-  //     toast.error(error?.message || "Failed to download risk report.");
-  //   } finally {
-  //     setDownloadLoading(false);
-  //   }
-  // };
-
   const downloadFiles = async (auditId) => {
     if (!auditId) {
       toast.error("Please select an audit type.");
@@ -254,8 +202,8 @@ export default function ProjectDetails() {
       const data = await response.json(); // expect { results: [...], dna_score: 87 }
       
       if(data?.warning) {
-        alert(data?.warning)
-        return
+        setWarningMsg(data?.warning);
+        return;
       }
 
       await downloadReportsAsPdfOrZip(data.results);
@@ -409,9 +357,6 @@ export default function ProjectDetails() {
                           "Run and Download Report"
                         )}
                       </button>
-                      {/* <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-md text-sm">
-                        Run Audit
-                      </button> */}
                       <button
                         className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-md text-sm"
                         onClick={() => {
@@ -585,6 +530,27 @@ export default function ProjectDetails() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Warning Modal */}
+      {warningMsg && (
+        <div className="fixed inset-0 bg-black/40 bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <svg className="w-6 h-6 text-yellow-500 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z" />
+              </svg>
+              <span className="font-bold text-lg">Warning</span>
+            </div>
+            <div className="mb-4">{warningMsg}</div>
+            <button
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+              onClick={() => setWarningMsg("")}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
