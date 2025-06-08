@@ -264,9 +264,9 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
 
   // Risk Summary
   const counts = {
-    High: riskReport.filter((r) => r.risk_level === "High").length,
-    Medium: riskReport.filter((r) => r.risk_level === "Medium").length,
-    Low: riskReport.filter((r) => r.risk_level === "Low").length,
+    High: riskReport.risks.filter((r) => r.risk_level === "High").length,
+    Medium: riskReport.risks.filter((r) => r.risk_level === "Medium").length,
+    Low: riskReport.risks.filter((r) => r.risk_level === "Low").length,
   };
 
   doc.setFontSize(12);
@@ -283,7 +283,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
   doc.text(`Low: ${counts.Low}`, 110, 46);
 
   // Table
-  const tableData = riskReport.map((item, i) => [
+  const tableData = riskReport.risks.map((item, i) => [
     i + 1,
     item.issue,
     item.risk_level,

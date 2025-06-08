@@ -88,13 +88,13 @@ export default function AuditView() {
           name: result.audit_type,
           status:
             result.risk_report &&
-            result.risk_report.some((r) => r.risk_level === "High")
+            result.risk_report.risks.some((r) => r.risk_level === "High")
               ? "high"
               : result.risk_report &&
-                result.risk_report.some((r) => r.risk_level === "Medium")
+                result.risk_report.risks.some((r) => r.risk_level === "Medium")
               ? "medium"
               : result.risk_report &&
-                result.risk_report.some((r) => r.risk_level === "Low")
+                result.risk_report.risks.some((r) => r.risk_level === "Low")
               ? "low"
               : "missing",
           count: apiResults.filter((r) => r.audit_type === result.audit_type)
