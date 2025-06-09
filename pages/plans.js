@@ -1,5 +1,9 @@
+import { BASE_URL } from "@/utils/api_constants";
+import { loadStripe } from "@stripe/stripe-js";
 import Link from "next/link";
 import React, { useState } from "react";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 export default function Plans() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,7 +26,7 @@ export default function Plans() {
       content:
         "Perfect for early-stage teams and solo entrepreneurs beginning their compliance journey. Includes access to essential document analysis and reporting tools to ensure you meet basic regulatory requirements efficiently and cost-effectively.",
       features: ["3 uploads", "SOC 2 Lite", "referrals"],
-      planId: "prod_SNncXUOcyGtVbj"
+      planId: "price_1RT22B9XLkXuF4R9y482pqD3"
     },
     {
       title: "SMB",
@@ -98,16 +102,18 @@ export default function Plans() {
     },
   ];
 
-  const handleSubscribe = async (priceId) => {
-    const res = await fetch("http://localhost:8000/create-checkout-session/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "test@test.com", amount: 379 }),
-    });
 
-    const data = await res.json();
-    window.location.href = data.checkout_url;
-  };
+async function subscribe(planId) {
+  const res = await fetch(`${BASE_URL}/create-checkout-session`, {
+    method: 'POST',
+    body: JSON.stringify({ planId }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  const { sessionId } = await res.json();
+  const stripe = await stripePromise;
+  await stripe?.redirectToCheckout({ sessionId });
+}
 
   return (
     <div
@@ -154,7 +160,7 @@ export default function Plans() {
                 </ul>
               </div>
               <button
-                onClick={() => handleSubscribe(plan.planId)}
+                onClick={() => subscribe(plan.planId)}
                 className="w-full cursor-pointer bg-gradient-to-r from-[#9135e2] to-[#6d28d9] text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:from-[#a855f7] hover:to-[#7c3aed] transition-colors mt-4"
               >
                 Subscribe Now

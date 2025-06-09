@@ -1,1 +1,1 @@
-export const auditTypes = ['SOC 1', 'SOC 2', 'SOX', 'PCI-DSS', 'HIPAA', 'GDPR', 'ISO 27001'];
+export const auditTypes = ['SOC 1', 'SOC 2', 'SOX', 'PCI-DSS', 'HIPAA', 'GDPR', 'FedRAMP', 'ISO 27001'];

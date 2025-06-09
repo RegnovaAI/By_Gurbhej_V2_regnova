@@ -126,6 +126,52 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     });
   }
 
+  // Redundant Clauses Table
+  if (riskReport.redundant_clauses && riskReport.redundant_clauses.length > 0) {
+    const redundantTableData = riskReport.redundant_clauses.map((item, i) => [
+      i + 1,
+      item.redundant,
+      item.risk_level,
+      item.explanation,
+      item.suggestion,
+    ]);
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 10,
+      head: [["#", "Redundant Clause", "Risk Level", "Explanation", "Suggestion"]],
+      body: redundantTableData,
+      styles: {
+        fontSize: 9,
+        overflow: "linebreak",
+        cellPadding: 3,
+        valign: "top",
+      },
+      headStyles: {
+        fillColor: [22, 78, 99],
+        textColor: 255,
+      },
+      columnStyles: {
+        0: { cellWidth: 8 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 60 },
+        4: { cellWidth: 60 },
+      },
+      margin: { left: 12, right: 10 },
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          const risk = data.row.raw[2];
+          if (risk === "High") {
+            data.cell.styles.fillColor = [255, 230, 230];
+          } else if (risk === "Medium") {
+            data.cell.styles.fillColor = [255, 250, 205];
+          } else if (risk === "Low") {
+            data.cell.styles.fillColor = [220, 255, 220];
+          }
+        }
+      },
+    });
+  }
+
   if (returnBlob) {
     // Only return the Blob, do NOT trigger download
     return doc.output("blob");

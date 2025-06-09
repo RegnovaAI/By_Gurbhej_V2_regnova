@@ -482,7 +482,7 @@ export default function Dashboard() {
       <div className="bg-gray-900 text-white flex-1 overflow-y-auto">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-          <div className="text-xl font-semibold">Dashboard</div>
+          <div className="text-xl font-semibold">Dassh</div>
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
