@@ -28,24 +28,24 @@ export default function Plans() {
   const plans = [
     {
       title: "Startup",
-      yearly: { price: 369, planId: "price_1RZCI8QZZmKBfiwEam2eiKih" },
-      monthly: { price: 36, planId: "price_1RZCHMQZZmKBfiwEuP6npVF6" },
+      yearly: { price: 369, planId: "price_1RYpojDH8aTp5yNUY07sbktxG" },
+      monthly: { price: 36, planId: "price_1RYpojDH8aTp5yNUY07bktxG" },
       content:
         "Perfect for early-stage teams and solo entrepreneurs beginning their compliance journey. Includes access to essential document analysis and reporting tools to ensure you meet basic regulatory requirements efficiently and cost-effectively.",
       features: ["3 uploads", "SOC 2 Lite", "referrals"],
     },
     {
       title: "SMB",
-      yearly: { price: 2789, planId: "price_1RZCJJQZZmKBfiwE5KumQnv6" },
-      monthly: { price: 278, planId: "price_1RZCJJQZZmKBfiwEfrMW6IvY" },
+      yearly: { price: 2789, planId: "prod_SNncP6NFRlmCm4" },
+      monthly: { price: 278, planId: "price_MONTHLY_SMB" },
       content:
         "Designed for growing small to medium-sized businesses needing more robust compliance and audit capabilities. This plan offers advanced document scanning, risk scoring, detailed compliance breakdowns, and team collaboration tools to streamline operations.",
       features: ["50 uploads", "PDF/CSV", "5 frameworks", "alert scheduler"],
     },
     {
       title: "Pro",
-      yearly: { price: 5388, planId: "price_1RZCKUQZZmKBfiwEUKRmcsbj" },
-      monthly: { price: 538, planId: "price_1RZCKUQZZmKBfiwEmEdHGAhE" },
+      yearly: { price: 5388, planId: "prod_SNndj3fL3wGK2U" },
+      monthly: { price: 538, planId: "price_MONTHLY_PRO" },
       content:
         "Tailored for established businesses with higher data volume and more complex compliance workflows. Includes everything in the SMB plan, plus prioritized risk alerts, automated audit trail generation, and integration with your internal systems for seamless operation.",
       features: [
@@ -58,8 +58,8 @@ export default function Plans() {
     },
     {
       title: "Enterprise",
-      yearly: { price: 9999, planId: "price_1RZCMBQZZmKBfiwEcQRN5FBF" },
-      monthly: { price: 999, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
+      yearly: { price: 9999, planId: "prod_SNndH85KqeF7Qw" },
+      monthly: { price: 999, planId: "price_MONTHLY_ENTERPRISE" },
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
       features: ["Dedicated Support", "Custom Solutions", "Unlimited Storage"],
