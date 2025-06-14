@@ -146,7 +146,8 @@ export default function Documents() {
                       <ul className="list-disc ml-6 mb-4">
                         {policy.length === 0 && <li>No policy documents.</li>}
                         {policy.map((file) => (
-                          <li key={file.filename} className="flex items-center gap-2">
+                          <li key={file.filename}>
+                            <div className="flex items-center gap-2">
                             <button
                               className="text-blue-400 underline bg-transparent border-none p-0 cursor-pointer"
                               onClick={() =>
@@ -160,7 +161,7 @@ export default function Documents() {
                               {file.filename}
                             </button>
                             <button
-                              className="text-red-500 text-sm"
+                              className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-md text-sm"
                               onClick={() =>
                                 handleDelete(
                                   group.project_id,
@@ -172,6 +173,7 @@ export default function Documents() {
                             >
                               {deletingFiles[file.filename] ? "Deleting..." : "Delete"}
                             </button>
+                            </div>
                           </li>
                         ))}
                       </ul>

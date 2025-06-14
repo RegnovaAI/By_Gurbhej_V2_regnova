@@ -100,9 +100,7 @@ export default function Reports() {
       <div className="flex-1 p-8 overflow-y-auto">
         <h1 className="text-2xl font-bold mb-4">Reports</h1>
         {loading && <div>Loading...</div>}
-        {!loading && groupedFiles.length === 0 && (
-          <div>No reports found.</div>
-        )}
+        {!loading && groupedFiles.length === 0 && <div>No reports found.</div>}
         <ul>
           {groupedFiles
             .filter((group) => group.audit_name !== null)
@@ -130,45 +128,44 @@ export default function Reports() {
                       <ul className="list-disc ml-6 mb-4">
                         {policy.length === 0 && <li>No policy documents.</li>}
                         {policy.map((file) => (
-                          <li
-                            key={file.filename}
-                            className="flex items-center gap-4"
-                          >
-                            <button
-                              className="text-blue-400 bg-transparent border-none p-0 cursor-pointer"
-                              // onClick={() =>
-                              //   handleDownload(
-                              //     group.project_id,
-                              //     group.audit_type_id,
-                              //     file.filename
-                              //   )
-                              // }
-                            >
-                              {file.filename}
-                            </button>
-                            <button
-                              className="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-md text-sm"
-                              onClick={() => {
-                                setSelectedAuditType(group.audit_type_id);
-                                downloadFiles(
-                                  group.audit_type_id,
-                                  group.project_id,
-                                  file.filename,
-                                  localStorage.getItem("rg-token")
-                                );
-                              }}
-                              disabled={downloadLoading}
-                            >
-                              {downloadLoading &&
-                              selectedAuditType === group.audit_type_id ? (
-                                <span className="flex items-center">
-                                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                                  Downloading...
-                                </span>
-                              ) : (
-                                "Download Report"
-                              )}
-                            </button>
+                          <li key={file.filename}>
+                            <div className="flex items-center gap-4">
+                              <button
+                                className="text-blue-400 bg-transparent border-none p-0 cursor-pointer"
+                                // onClick={() =>
+                                //   handleDownload(
+                                //     group.project_id,
+                                //     group.audit_type_id,
+                                //     file.filename
+                                //   )
+                                // }
+                              >
+                                {file.filename}
+                              </button>
+                              <button
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-md text-sm"
+                                onClick={() => {
+                                  setSelectedAuditType(group.audit_type_id);
+                                  downloadFiles(
+                                    group.audit_type_id,
+                                    group.project_id,
+                                    file.filename,
+                                    localStorage.getItem("rg-token")
+                                  );
+                                }}
+                                disabled={downloadLoading}
+                              >
+                                {downloadLoading &&
+                                selectedAuditType === group.audit_type_id ? (
+                                  <span className="flex items-center">
+                                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                                    Downloading...
+                                  </span>
+                                ) : (
+                                  "Download Report"
+                                )}
+                              </button>
+                            </div>
                           </li>
                         ))}
                       </ul>
