@@ -451,13 +451,13 @@ export default function Dashboard() {
                 <div className="flex items-center space-x-2">
                   <div>
                     <Link href={`/project/${project.id}`}>
-                    <div
-                      className={`font-medium mb-1 ${
-                        project.statusColor || "text-blue-400"
-                      }`}
-                    >
-                      {project.status || "In Progress"}
-                    </div>
+                      <div
+                        className={`font-medium mb-1 ${
+                          project.statusColor || "text-blue-400"
+                        }`}
+                      >
+                        {project.status || "In Progress"}
+                      </div>
                       <div className="text-gray-400 text-sm cursor-pointer">
                         {project.status || "In Progress"}
                       </div>
@@ -476,13 +476,20 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex flex-col w-screen h-screen lg:flex-row">
+    <div
+      className="flex flex-col w-screen h-screen lg:flex-row"
+      style={{
+        backgroundImage: "url(/bg-hero.png)",
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <Toaster position="top-right" /> {/* <-- Add Toaster here */}
       <Sidebar />
-      <div className="bg-gray-900 text-white flex-1 overflow-y-auto">
+      <div className="text-white flex-1 overflow-y-auto">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-          <div className="text-xl font-semibold">Dassh</div>
+          <div className="text-xl font-semibold">Dashboard</div>
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />

@@ -253,7 +253,11 @@ export default function ProjectDetails() {
   };
 
   return (
-    <div className="flex bg-gray-900 text-white w-screen h-screen overflow-hidden">
+    <div className="flex bg-gray-900 text-white w-screen h-screen overflow-hidden"  style={{
+        backgroundImage: "url(/bg-hero.png)",
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+      }}>
       <Sidebar />
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Breadcrumb */}

@@ -45,37 +45,83 @@ const downloadReport = async (projectId, auditTypeId, filename, token) => {
 export default function Documents() {
   const [groupedFiles, setGroupedFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deletingFiles, setDeletingFiles] = useState({});
+
+  const token = typeof window != "undefined" && localStorage.getItem("rg-token");
+
+  const fetchGroupedFiles = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/user/files/grouped`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await res.json();
+      setGroupedFiles(data || []);
+    } catch {
+      setGroupedFiles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem("rg-token");
-    setLoading(true);
-    fetch(`${BASE_URL}/user/files/grouped`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setGroupedFiles(data || []))
-      .catch(() => setGroupedFiles([]))
-      .finally(() => setLoading(false));
+    fetchGroupedFiles();
   }, []);
 
   const handleDownload = (projectId, auditTypeId, filename) => {
-    const token = localStorage.getItem("rg-token");
     downloadReport(projectId, auditTypeId, filename, token);
   };
 
+  const handleDelete = async (projectId, auditTypeId, filename) => {
+    setDeletingFiles((prev) => ({ ...prev, [filename]: true }));
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/project/${projectId}/audit/${auditTypeId}/file/${filename}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || result.status === "error") {
+        alert(result.message || "Failed to delete file");
+      } else {
+        await fetchGroupedFiles(); // Refetch updated list
+      }
+    } catch (error) {
+      alert("Error deleting file");
+    } finally {
+      setDeletingFiles((prev) => {
+        const updated = { ...prev };
+        delete updated[filename];
+        return updated;
+      });
+    }
+  };
+
   return (
-    <div className="flex bg-gray-900 flex-col w-screen h-screen lg:flex-row">
+    <div
+      className="flex bg-gray-900 flex-col w-screen h-screen lg:flex-row"
+      style={{
+        backgroundImage: "url(/bg-hero.png)",
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <Sidebar />
       <div className="flex-1 p-8 overflow-y-auto">
         <h1 className="text-2xl font-bold mb-4">Documents</h1>
         {loading && <div>Loading...</div>}
-        {!loading && groupedFiles.length === 0 && (
-          <div>No documents found.</div>
-        )}
+        {!loading && groupedFiles.length === 0 && <div>No documents found.</div>}
         <ul>
           {groupedFiles
             .filter((group) => group.audit_name !== null)
@@ -85,10 +131,7 @@ export default function Documents() {
               const auditHeading = `Audit: ${group.audit_name}`;
 
               return (
-                <li
-                  key={idx}
-                  className="mb-8 border border-gray-700 rounded p-4"
-                >
+                <li key={idx} className="mb-8 border border-gray-700 rounded p-4">
                   <h2 className="text-xl text-white font-semibold mb-2">
                     {projectHeading}
                   </h2>
@@ -103,7 +146,7 @@ export default function Documents() {
                       <ul className="list-disc ml-6 mb-4">
                         {policy.length === 0 && <li>No policy documents.</li>}
                         {policy.map((file) => (
-                          <li key={file.filename}>
+                          <li key={file.filename} className="flex items-center gap-2">
                             <button
                               className="text-blue-400 underline bg-transparent border-none p-0 cursor-pointer"
                               onClick={() =>
@@ -115,6 +158,19 @@ export default function Documents() {
                               }
                             >
                               {file.filename}
+                            </button>
+                            <button
+                              className="text-red-500 text-sm"
+                              onClick={() =>
+                                handleDelete(
+                                  group.project_id,
+                                  group.audit_type_id,
+                                  file.filename
+                                )
+                              }
+                              disabled={deletingFiles[file.filename]}
+                            >
+                              {deletingFiles[file.filename] ? "Deleting..." : "Delete"}
                             </button>
                           </li>
                         ))}
