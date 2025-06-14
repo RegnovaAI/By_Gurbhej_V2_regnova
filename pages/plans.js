@@ -144,7 +144,7 @@ export default function Plans() {
   }
 
   const router = useRouter();
-  const isLoggedIn = !!localStorage.getItem("rg-token");
+  const isLoggedIn = typeof window != "undefined" && !!localStorage.getItem("rg-token");
 
   return (
     <div
