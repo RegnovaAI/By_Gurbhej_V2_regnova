@@ -41,7 +41,7 @@ export default function Plans() {
       monthly: { price: 278, planId: "price_1RZCJJQZZmKBfiwEfrMW6IvY" },
       content:
         "Designed for growing small to medium-sized businesses needing more robust compliance and audit capabilities. This plan offers advanced document scanning, risk scoring, detailed compliance breakdowns, and team collaboration tools to streamline operations.",
-      features: ["3 Audits", "50 Runs", "Policy", "Validation check", "PDF/CSV output"],
+      features: ["3 Audits", "50 Runs", "Policy check", "Validation check", "PDF/CSV output"],
     },
     {
       title: "Pro",
@@ -52,7 +52,7 @@ export default function Plans() {
       features: [
         "6 Audits",
         "100 Runs",
-        "Policy", "Validation", "RegnovaPilot™",
+        "Policy check", "Validation check", "RegnovaPilot™",
         "PDF/CSV/JSON output",
         "Alert Scheduler",
       ],
@@ -63,7 +63,7 @@ export default function Plans() {
       monthly: { price: 999, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
-      features: ["8+ Audits", "Custom Runs", "Policy", "Validation", "RegnovaPilot™", "PDF/CSV/JSON", "Alert Scheduler","API", "Custom options"],
+      features: ["8+ Audits", "Custom Runs", "Policy check", "Validation check", "RegnovaPilot™", "PDF/CSV/JSON", "Alert Scheduler","API", "Custom options"],
     },
   ];
 
