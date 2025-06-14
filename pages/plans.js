@@ -33,7 +33,7 @@ export default function Plans() {
       monthly: { price: 36, planId: "price_1RZCHMQZZmKBfiwEuP6npVF6" },
       content:
         "Perfect for early-stage teams and solo entrepreneurs beginning their compliance journey. Includes access to essential document analysis and reporting tools to ensure you meet basic regulatory requirements efficiently and cost-effectively.",
-      features: ["3 uploads", "SOC 2 Lite", "referrals"],
+      features: ["1 Audit", "5 Runs", "Policy check", "PDF output"],
     },
     {
       title: "SMB",
@@ -41,7 +41,7 @@ export default function Plans() {
       monthly: { price: 278, planId: "price_1RZCJJQZZmKBfiwEfrMW6IvY" },
       content:
         "Designed for growing small to medium-sized businesses needing more robust compliance and audit capabilities. This plan offers advanced document scanning, risk scoring, detailed compliance breakdowns, and team collaboration tools to streamline operations.",
-      features: ["50 uploads", "PDF/CSV", "5 frameworks", "alert scheduler"],
+      features: ["3 Audits", "50 Runs", "Policy + Validation check", "PDF/CSV output"],
     },
     {
       title: "Pro",
@@ -50,11 +50,11 @@ export default function Plans() {
       content:
         "Tailored for established businesses with higher data volume and more complex compliance workflows. Includes everything in the SMB plan, plus prioritized risk alerts, automated audit trail generation, and integration with your internal systems for seamless operation.",
       features: [
-        "Unlimited uploads",
-        "API",
-        "ClauseCam™",
-        "telemetry",
-        "templates",
+        "6 Audits",
+        "100 Runs",
+        "Policy + Validation + RegnovaPilot™",
+        "PDF/CSV/JSON output",
+        "Alert Scheduler",
       ],
     },
     {
@@ -63,7 +63,7 @@ export default function Plans() {
       monthly: { price: 999, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
-      features: ["Dedicated Support", "Custom Solutions", "Unlimited Storage"],
+      features: ["8+ Audits", "Custom", "All in Pro + custom", "All in Pro + PDF/CSV/JSON output", "Alert Scheduler","API"],
     },
   ];
 
