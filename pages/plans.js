@@ -63,7 +63,7 @@ export default function Plans() {
       monthly: { price: 999, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
-      features: ["8+ Audits", "Custom Runs", "Policy check", "Validation check", "RegnovaPilot™", "PDF/CSV/JSON", "Alert Scheduler","API", "Custom options"],
+      features: ["8+ Audits", "Custom Runs", "Policy check", "Validation check", "RegnovaPilot™", "PDF/CSV/JSON output", "Alert Scheduler","API", "Custom options"],
     },
   ];
 
