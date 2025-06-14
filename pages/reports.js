@@ -98,10 +98,10 @@ export default function Reports() {
     >
       <Sidebar />
       <div className="flex-1 p-8 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">Documents</h1>
+        <h1 className="text-2xl font-bold mb-4">Reports</h1>
         {loading && <div>Loading...</div>}
         {!loading && groupedFiles.length === 0 && (
-          <div>No documents found.</div>
+          <div>No reports found.</div>
         )}
         <ul>
           {groupedFiles
@@ -125,7 +125,7 @@ export default function Reports() {
                     </h3>
                     <div className="ml-4">
                       <div className="font-medium text-gray-400">
-                        Policy Documents:
+                        Policy Reports:
                       </div>
                       <ul className="list-disc ml-6 mb-4">
                         {policy.length === 0 && <li>No policy documents.</li>}

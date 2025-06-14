@@ -177,7 +177,7 @@ export default function Documents() {
                       </ul>
 
                       <div className="font-medium text-gray-400">
-                        Validation Reports:
+                        Validation Documents:
                       </div>
                       <ul className="list-disc ml-6">
                         <li>No validation reports available.</li>
