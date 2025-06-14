@@ -1,10 +1,7 @@
 import { BASE_URL } from "@/utils/api_constants";
 import { loadStripe } from "@stripe/stripe-js";
 import Link from "next/link";
-<<<<<<< HEAD
 import { useRouter } from "next/router";
-=======
->>>>>>> 59ae526c288383938b4517e038486b470f9db1ab
 import React, { useEffect, useState } from "react";
 
 const stripePromise = loadStripe(
@@ -75,14 +72,10 @@ export default function Plans() {
     const res = await fetch(`${BASE_URL}/create-checkout-session`, {
       method: "POST",
       body: JSON.stringify({ planId }),
-<<<<<<< HEAD
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-=======
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
->>>>>>> 59ae526c288383938b4517e038486b470f9db1ab
     });
 
     const { sessionId } = await res.json();
@@ -100,15 +93,9 @@ export default function Plans() {
     try {
       setLoading(true);
       const response = await fetch(`${BASE_URL}/subscription`, {
-<<<<<<< HEAD
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-=======
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
->>>>>>> 59ae526c288383938b4517e038486b470f9db1ab
           Authorization: `Bearer ${token}`,
         },
       });
@@ -134,22 +121,15 @@ export default function Plans() {
     try {
       setLoading(true);
       const response = await fetch(`${BASE_URL}/cancel-subscription`, {
-<<<<<<< HEAD
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-=======
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
->>>>>>> 59ae526c288383938b4517e038486b470f9db1ab
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ subscription_id: subscription.subscription_id }),
       });
 
       if (!response.ok) {
-<<<<<<< HEAD
         alert("Failed to cancel subscription");
         setLoading(false);
         return;
@@ -165,20 +145,6 @@ export default function Plans() {
 
   const router = useRouter();
   const isLoggedIn = !!localStorage.getItem("rg-token");
-=======
-        alert('Failed to cancel subscription');
-        setLoading(false);
-        return;
-      }
-      alert('Subscription cancelled');
-      await getSubscriptionDetails();
-      setLoading(false);
-    } catch (err) {
-      alert('Failed to cancel subscription');
-      setLoading(false);
-    }
-  }
->>>>>>> 59ae526c288383938b4517e038486b470f9db1ab
 
   return (
     <div
@@ -258,7 +224,6 @@ export default function Plans() {
                     ))}
                   </ul>
                 </div>
-<<<<<<< HEAD
 
                 {isLoggedIn ? (
                   <>
@@ -282,19 +247,6 @@ export default function Plans() {
                 ) : (
                   <button
                     onClick={() => router.push('/login')}
-=======
-                {isActive ? (
-                  <button
-                    onClick={cancelSubscription}
-                    disabled={loading}
-                    className="w-full cursor-pointer bg-red-600 text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:bg-red-700 transition-colors mt-4 disabled:opacity-60"
-                  >
-                    {loading ? "Cancelling..." : "Cancel Subscription"}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => subscribe(periodData.planId)}
->>>>>>> 59ae526c288383938b4517e038486b470f9db1ab
                     className="w-full cursor-pointer bg-gradient-to-r from-[#9135e2] to-[#6d28d9] text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:from-[#a855f7] hover:to-[#7c3aed] transition-colors mt-4"
                   >
                     Subscribe Now
