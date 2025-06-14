@@ -59,7 +59,7 @@ export default function Plans() {
     },
     {
       title: "Enterprise",
-      yearly: { price: 9999, planId: "price_1RZCMBQZZmKBfiwEcQRN5FBF" },
+      yearly: { price: Custom, planId: "price_1RZCMBQZZmKBfiwEcQRN5FBF" },
       monthly: { price: 999, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
