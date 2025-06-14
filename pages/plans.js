@@ -59,11 +59,11 @@ export default function Plans() {
     },
     {
       title: "Enterprise",
-      yearly: { price: Custom, planId: "price_1RZCMBQZZmKBfiwEcQRN5FBF" },
+      yearly: { price: "Custom", planId: "price_1RZCMBQZZmKBfiwEcQRN5FBF" },
       monthly: { price: 999, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
       content:
         "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
-      features: ["8+ Audits", "Custom Runs", "Policy check", "Validation check", "RegnovaPilot™", "PDF/CSV/JSON output", "Alert Scheduler","API", "Custom options"],
+      features: ["8+ Audits", "Custom Runs", "Policy Check", "Validation Check", "RegnovaPilot™", "PDF/CSV/JSON output", "Alert Scheduler","API", "Account Manager", "Custom Options"],
     },
   ];
 
