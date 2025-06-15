@@ -143,10 +143,10 @@ export default function Dashboard() {
       setErrorText("Select at least one audit type.");
       return;
     }
-    if (!selectedFile || selectedFile.length === 0) {
-      setErrorText("Please upload at least one file.");
-      return;
-    }
+    // if (!selectedFile || selectedFile.length === 0) {
+    //   setErrorText("Please upload at least one file.");
+    //   return;
+    // }
 
     setErrorText("");
     const form = new FormData();
@@ -663,7 +663,7 @@ export default function Dashboard() {
                   {...getRootProps()}
                   className="flex flex-col items-center border-2 border-dashed border-[#3e5074] bg-[#000f26] rounded-xl p-8 shadow-xl transition mt-8"
                 >
-                  <input {...getInputProps()} multiple />
+                  {/* <input {...getInputProps()} multiple />
                   <button
                     type="button"
                     onClick={open}
@@ -676,7 +676,7 @@ export default function Dashboard() {
                     <p className="text-lg font-normal text-white">
                       Drag and drop a document here, or click to select one
                     </p>
-                  </div>
+                  </div> */}
                   {/* You can add an Analyze button here if needed */}
                 </div>
                 <div className="flex space-x-3 pt-4">
