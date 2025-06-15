@@ -37,7 +37,7 @@ export default function Plans() {
     },
     {
       title: "Team",
-      yearly: { price: 2499, planId: "price_1RZByCHvHnFsbzre958iUorl" },
+      yearly: { price: 2499, planId: "price_1RaDPEQZZmKBfiwEezQkOHdu" },
       monthly: { price: 278, planId: "price_1RZCJJQZZmKBfiwEfrMW6IvY" },
       content:
         "Designed for growing small to medium-sized businesses needing more robust compliance and audit capabilities. This plan offers advanced document scanning, risk scoring, detailed compliance breakdowns, and team collaboration tools to streamline operations.",
@@ -45,7 +45,7 @@ export default function Plans() {
     },
     {
       title: "Pro",
-      yearly: { price: 5499, planId: "price_1RZBzxHvHnFsbzreUyeM2jby" },
+      yearly: { price: 5499, planId: "price_1RaDQKQZZmKBfiwEohFw1u2i" },
       monthly: { price: 538, planId: "price_1RZCKUQZZmKBfiwEmEdHGAhE" },
       content:
         "Tailored for established businesses with higher data volume and more complex compliance workflows. Includes everything in the SMB plan, plus prioritized risk alerts, automated audit trail generation, and integration with your internal systems for seamless operation.",
@@ -161,7 +161,7 @@ export default function Plans() {
           Membership Plans
         </h1>
         {/* Billing period toggle */}
-        <div className="flex justify-center mb-8">
+        {/* <div className="flex justify-center mb-8">
           <button
             className={`px-6 py-2 rounded-l-lg font-semibold ${
               billingPeriod === "monthly"
@@ -182,7 +182,7 @@ export default function Plans() {
           >
             Yearly
           </button>
-        </div>
+       </div> */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {plans.map((plan, index) => {
             const periodData = plan[billingPeriod];
