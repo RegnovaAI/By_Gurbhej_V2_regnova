@@ -37,7 +37,7 @@ export default function Plans() {
     },
     {
       title: "Team",
-      yearly: { price: 2499, planId: "price_1RZCJJQZZmKBfiwE5KumQnv6" },
+      yearly: { price: 2499, planId: "price_1RZByCHvHnFsbzre958iUorl" },
       monthly: { price: 278, planId: "price_1RZCJJQZZmKBfiwEfrMW6IvY" },
       content:
         "Designed for growing small to medium-sized businesses needing more robust compliance and audit capabilities. This plan offers advanced document scanning, risk scoring, detailed compliance breakdowns, and team collaboration tools to streamline operations.",
@@ -45,7 +45,7 @@ export default function Plans() {
     },
     {
       title: "Pro",
-      yearly: { price: 5499, planId: "price_1RZCKUQZZmKBfiwEUKRmcsbj" },
+      yearly: { price: 5499, planId: "price_1RZBzxHvHnFsbzreUyeM2jby" },
       monthly: { price: 538, planId: "price_1RZCKUQZZmKBfiwEmEdHGAhE" },
       content:
         "Tailored for established businesses with higher data volume and more complex compliance workflows. Includes everything in the SMB plan, plus prioritized risk alerts, automated audit trail generation, and integration with your internal systems for seamless operation.",
