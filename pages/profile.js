@@ -659,26 +659,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )}
-                <div
-                  {...getRootProps()}
-                  className="flex flex-col items-center border-2 border-dashed border-[#3e5074] bg-[#000f26] rounded-xl p-8 shadow-xl transition mt-8"
-                >
-                  {/* <input {...getInputProps()} multiple />
-                  <button
-                    type="button"
-                    onClick={open}
-                    disabled={isDemo}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition cursor-pointer"
-                  >
-                    Browse & Select Files
-                  </button>
-                  <div className="w-full mt-4 flex flex-col gap-2 items-center">
-                    <p className="text-lg font-normal text-white">
-                      Drag and drop a document here, or click to select one
-                    </p>
-                  </div> */}
-                  {/* You can add an Analyze button here if needed */}
-                </div>
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
@@ -998,25 +978,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )}
-                <div
-                  {...getRootProps()}
-                  className="flex flex-col items-center border-2 border-dashed border-[#3e5074] bg-[#000f26] rounded-xl p-8 shadow-xl transition mt-8"
-                >
-                  <input {...getInputProps()} multiple />
-                  <button
-                    type="button"
-                    onClick={open}
-                    disabled={isDemo}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition cursor-pointer"
-                  >
-                    Browse & Select Files
-                  </button>
-                  <div className="w-full mt-4 flex flex-col gap-2 items-center">
-                    <p className="text-lg font-normal text-white">
-                      Drag and drop a document here, or click to select one
-                    </p>
-                  </div>
-                </div>
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
