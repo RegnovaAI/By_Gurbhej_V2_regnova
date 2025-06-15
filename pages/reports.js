@@ -102,85 +102,70 @@ export default function Reports() {
         {loading && <div>Loading...</div>}
         {!loading && groupedFiles.length === 0 && <div>No reports found.</div>}
         <ul>
-          {groupedFiles
-            .filter((group) => group.audit_name !== null)
-            .map((group, idx) => {
-              const { policy } = groupByType(group.files || []);
-              const projectHeading = `Project: ${group.project_name}`;
-              const auditHeading = `Audit: ${group.audit_name}`;
+          {groupedFiles.map((project, idx) => (
+            <li
+              key={idx}
+              className="bg-gray-800 rounded-lg shadow-md group transition-all p-3"
+            >
+              <h2 className="text-xl text-white font-semibold mb-2">
+                Project: {project.project_name}
+              </h2>
 
-              return (
-                <li
-                  key={idx}
-                  className="mb-8 border border-gray-700 rounded p-4"
-                >
-                  <h2 className="text-xl text-white font-semibold mb-2">
-                    {projectHeading}
-                  </h2>
-                  <div className="ml-4">
-                    <h3 className="text-lg text-gray-300 font-medium mb-1">
-                      {auditHeading}
+              {project.audits
+                .filter((audit) => audit.audit_type_id && audit.audit_name)
+                .map((audit, auditIdx) => (
+                  <div key={auditIdx} className="ml-4 mb-4">
+                    <h3 className="text-lg text-gray-300 font-medium mb-2 border-b border-gray-700 pb-2 mb-4">
+                      Audit: {audit.audit_name || "Unknown"}
                     </h3>
-                    <div className="ml-4">
-                      <div className="font-medium text-gray-400">
-                        Policy Reports:
-                      </div>
-                      <ul className="list-disc ml-6 mb-4">
-                        {policy.length === 0 && <li>No policy documents.</li>}
-                        {policy.map((file) => (
-                          <li key={file.filename}>
-                            <div className="flex items-center gap-4">
-                              <button
-                                className="text-blue-400 bg-transparent border-none p-0 cursor-pointer"
-                                // onClick={() =>
-                                //   handleDownload(
-                                //     group.project_id,
-                                //     group.audit_type_id,
-                                //     file.filename
-                                //   )
-                                // }
-                              >
-                                {file.filename}
-                              </button>
-                              <button
-                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-md text-sm"
-                                onClick={() => {
-                                  setSelectedAuditType(group.audit_type_id);
-                                  downloadFiles(
-                                    group.audit_type_id,
-                                    group.project_id,
-                                    file.filename,
-                                    localStorage.getItem("rg-token")
-                                  );
-                                }}
-                                disabled={downloadLoading}
-                              >
-                                {downloadLoading &&
-                                selectedAuditType === group.audit_type_id ? (
-                                  <span className="flex items-center">
-                                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                                    Downloading...
-                                  </span>
-                                ) : (
-                                  "Download Report"
-                                )}
-                              </button>
-                            </div>
+
+                    {audit.files.length === 0 ? (
+                      <p className="text-gray-500 ml-4">No files available.</p>
+                    ) : (
+                      <ul className="list-disc">
+                        {audit.files.map((file, fileIdx) => (
+                          <li
+                            key={fileIdx}
+                            className="flex justify-between items-center p-2 text-gray-200"
+                          >
+                            <span className="flex items-center">
+                              <span className="h-3 w-3 bg-green-500 rounded-full mr-2"></span>{" "}
+                              {/* Dot */}
+                              {file.filename}
+                            </span>
+                            <button
+                              className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-5 py-2 rounded-lg text-sm font-semibold flex items-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => {
+                                setSelectedAuditType(audit.audit_type_id);
+                                downloadFiles(
+                                  audit.audit_type_id,
+                                  project.project_id,
+                                  file.filename
+                                );
+                              }}
+                              disabled={
+                                downloadLoading &&
+                                selectedAuditType === audit.audit_type_id
+                              }
+                            >
+                              {downloadLoading &&
+                              selectedAuditType === audit.audit_type_id ? (
+                                <span className="flex items-center">
+                                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                                  Downloading...
+                                </span>
+                              ) : (
+                                "Download Report"
+                              )}
+                            </button>
                           </li>
                         ))}
                       </ul>
-
-                      <div className="font-medium text-gray-400">
-                        Validation Reports:
-                      </div>
-                      <ul className="list-disc ml-6">
-                        <li>No validation reports available.</li>
-                      </ul>
-                    </div>
+                    )}
                   </div>
-                </li>
-              );
-            })}
+                ))}
+            </li>
+          ))}
         </ul>
       </div>
     </div>

@@ -47,12 +47,13 @@ export default function Documents() {
   const [loading, setLoading] = useState(false);
   const [deletingFiles, setDeletingFiles] = useState({});
 
-  const token = typeof window != "undefined" && localStorage.getItem("rg-token");
+  const token =
+    typeof window != "undefined" && localStorage.getItem("rg-token");
 
   const fetchGroupedFiles = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/user/files/grouped`, {
+      const res = await fetch(`${BASE_URL}/user/files/uploaded/grouped`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -60,8 +61,32 @@ export default function Documents() {
         },
       });
       const data = await res.json();
-      setGroupedFiles(data || []);
-    } catch {
+
+      // Normalize: group audits under projects
+      const grouped = {};
+
+      data.forEach((item) => {
+        const { project_id, project_name, audit_type_id, audit_name, files } =
+          item;
+
+        if (!grouped[project_id]) {
+          grouped[project_id] = {
+            project_id,
+            project_name,
+            audits: [],
+          };
+        }
+
+        grouped[project_id].audits.push({
+          audit_type_id,
+          audit_name: audit_name,
+          files,
+        });
+      });
+
+      setGroupedFiles(Object.values(grouped));
+    } catch (err) {
+      console.error(err);
       setGroupedFiles([]);
     } finally {
       setLoading(false);
@@ -119,76 +144,75 @@ export default function Documents() {
     >
       <Sidebar />
       <div className="flex-1 p-8 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">Documents</h1>
-        {loading && <div>Loading...</div>}
-        {!loading && groupedFiles.length === 0 && <div>No documents found.</div>}
+        <h1 className="text-2xl font-bold mb-4 text-white">Documents</h1>
+        {loading && <div className="text-white">Loading...</div>}
+        {!loading && groupedFiles.length === 0 && (
+          <div className="text-white">No documents found.</div>
+        )}
         <ul>
-          {groupedFiles
-            .filter((group) => group.audit_name !== null)
-            .map((group, idx) => {
-              const { policy } = groupByType(group.files || []);
-              const projectHeading = `Project: ${group.project_name}`;
-              const auditHeading = `Audit: ${group.audit_name}`;
+          {groupedFiles.map((project, idx) => (
+            <li key={idx} className="bg-gray-800 rounded-lg shadow-md group transition-all p-3">
+              <h2 className="text-xl text-white font-semibold mb-2">
+                Project: {project.project_name}
+              </h2>
 
-              return (
-                <li key={idx} className="mb-8 border border-gray-700 rounded p-4">
-                  <h2 className="text-xl text-white font-semibold mb-2">
-                    {projectHeading}
-                  </h2>
-                  <div className="ml-4">
-                    <h3 className="text-lg text-gray-300 font-medium mb-1">
-                      {auditHeading}
+              {/* Loop audits */}
+              {(project.audits || [])
+                .filter(
+                  (audit) => audit.audit_name && audit.audit_name.trim() !== ""
+                )
+                .map((audit, auditIdx) => (
+                  <div key={auditIdx} className="ml-4 mb-4">
+                    <h3 className="text-lg text-gray-300 font-medium mb-2 border-b border-gray-700 pb-2 mb-4">
+                      Audit: {audit.audit_name}
                     </h3>
-                    <div className="ml-4">
-                      <div className="font-medium text-gray-400">
-                        Policy Documents:
-                      </div>
-                      <ul className="list-disc ml-6 mb-4">
-                        {policy.length === 0 && <li>No policy documents.</li>}
-                        {policy.map((file) => (
-                          <li key={file.filename}>
-                            <div className="flex items-center gap-2">
+                    <ul className="list-disc">
+                      {audit.files.map((file, fileIdx) => (
+                        <li
+                          key={fileIdx}
+                          className="flex justify-between items-center mb-2 text-gray-300"
+                        >
+                          <span className="flex items-center">
+                            <span className="h-3 w-3 bg-green-500 rounded-full mr-2"></span>{" "}
+                            {/* Dot */}
+                            {file.filename}
+                          </span>
+                          <div className="flex gap-2">
                             <button
-                              className="text-blue-400 underline bg-transparent border-none p-0 cursor-pointer"
+                              className="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-md text-sm"
                               onClick={() =>
                                 handleDownload(
-                                  group.project_id,
-                                  group.audit_type_id,
+                                  project.project_id,
+                                  audit.audit_type_id,
                                   file.filename
                                 )
                               }
                             >
-                              {file.filename}
+                              Download
                             </button>
                             <button
                               className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-md text-sm"
                               onClick={() =>
                                 handleDelete(
-                                  group.project_id,
-                                  group.audit_type_id,
+                                  project.project_id,
+                                  audit.audit_type_id,
                                   file.filename
                                 )
                               }
                               disabled={deletingFiles[file.filename]}
                             >
-                              {deletingFiles[file.filename] ? "Deleting..." : "Delete"}
+                              {deletingFiles[file.filename]
+                                ? "Deleting..."
+                                : "Delete"}
                             </button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <div className="font-medium text-gray-400">
-                        Validation Documents:
-                      </div>
-                      <ul className="list-disc ml-6">
-                        <li>No validation reports available.</li>
-                      </ul>
-                    </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </li>
-              );
-            })}
+                ))}
+            </li>
+          ))}
         </ul>
       </div>
     </div>
