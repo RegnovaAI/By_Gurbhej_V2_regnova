@@ -208,7 +208,7 @@ export default function Plans() {
                   </h2>
                   <div className="text-center mb-4 border-b border-blue-900 pb-4">
                     <p className="text-4xl font-extrabold text-white mb-1">
-                      €{periodData.price}
+                      US${periodData.price}
                     </p>
                     <p className="text-xs text-blue-300">
                       {billingPeriod === "yearly"
