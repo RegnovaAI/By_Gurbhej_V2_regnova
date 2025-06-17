@@ -4,16 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 export default function Plans() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [billingPeriod, setBillingPeriod] = useState("yearly"); // "monthly" or "yearly"
-  const [subscription, setSubscription] = useState(null); // Store subscription details
-  const [loading, setLoading] = useState(false);
+  const [billingPeriod, setBillingPeriod] = useState("yearly");
+  const [subscription, setSubscription] = useState(null);
+  const [loadingPlanId, setLoadingPlanId] = useState(null); // 🔁 Track loading per plan
+  const [cancelling, setCancelling] = useState(false);
 
   const openModal = (plan) => {
     setSelectedPlan(plan);
@@ -25,8 +24,7 @@ export default function Plans() {
     setSelectedPlan(null);
   };
 
-  // Add both monthly and yearly prices and planIds
-    const plans = [
+  const plans = [
     {
       title: "Essential",
       yearly: { price: 369, planId: "price_1RZCI8QZZmKBfiwEam2eiKih" },
@@ -62,37 +60,41 @@ export default function Plans() {
       yearly: { price: 9999, planId: "price_1RZCMBQZZmKBfiwEcQRN5FBF" },
       monthly: { price: 999, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
       content:
-        "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise- scale audit and security demands.",
-      features: ["8+ Audits", "Custom AI Risk Reports", "Policy Check", "Validation Check", "RegnovaPilot™", "PDF/CSV/JSON output", "Alert Scheduler","API", "Account Manager", "Custom Options"],
+        "Built for large enterprises and regulated industries. Offers full platform access with custom onboarding, dedicated account management, API access, unlimited document processing, and advanced reporting capabilities to meet enterprise-scale audit and security demands.",
+      features: ["8+ Audits", "Custom AI Risk Reports", "Policy Check", "Validation Check", "RegnovaPilot™", "PDF/CSV/JSON output", "Alert Scheduler", "API", "Account Manager", "Custom Options"],
     },
   ];
 
-
   async function subscribe(planId) {
     const token = localStorage.getItem("rg-token");
-    const res = await fetch(`${BASE_URL}/create-checkout-session`, {
-      method: "POST",
-      body: JSON.stringify({ planId }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      setLoadingPlanId(planId);
+      const res = await fetch(`${BASE_URL}/create-checkout-session`, {
+        method: "POST",
+        body: JSON.stringify({ planId }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    const { sessionId } = await res.json();
-    const stripe = await stripePromise;
-    await stripe?.redirectToCheckout({ sessionId });
+      const { sessionId } = await res.json();
+      const stripe = await stripePromise;
+      await stripe?.redirectToCheckout({ sessionId });
+    } catch (error) {
+      alert("Failed to initiate checkout");
+    } finally {
+      setLoadingPlanId(null);
+    }
   }
 
   useEffect(() => {
     getSubscriptionDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function getSubscriptionDetails() {
     const token = localStorage.getItem("rg-token");
     try {
-      setLoading(true);
       const response = await fetch(`${BASE_URL}/subscription`, {
         method: "GET",
         headers: {
@@ -103,16 +105,13 @@ export default function Plans() {
 
       if (!response.ok) {
         setSubscription(null);
-        setLoading(false);
         return;
       }
 
       const data = await response.json();
       setSubscription(data);
-      setLoading(false);
     } catch (err) {
       setSubscription(null);
-      setLoading(false);
     }
   }
 
@@ -120,7 +119,7 @@ export default function Plans() {
     if (!subscription?.subscription_id) return;
     const token = localStorage.getItem("rg-token");
     try {
-      setLoading(true);
+      setCancelling(true);
       const response = await fetch(`${BASE_URL}/cancel-subscription`, {
         method: "POST",
         headers: {
@@ -132,20 +131,20 @@ export default function Plans() {
 
       if (!response.ok) {
         alert("Failed to cancel subscription");
-        setLoading(false);
         return;
       }
+
       alert("Subscription cancelled");
       await getSubscriptionDetails();
-      setLoading(false);
     } catch (err) {
       alert("Failed to cancel subscription");
-      setLoading(false);
+    } finally {
+      setCancelling(false);
     }
   }
 
   const router = useRouter();
-  const isLoggedIn = typeof window != "undefined" && !!localStorage.getItem("rg-token");
+  const isLoggedIn = typeof window !== "undefined" && !!localStorage.getItem("rg-token");
 
   return (
     <div
@@ -157,32 +156,7 @@ export default function Plans() {
       }}
     >
       <div className="pricing-container mx-auto text-center mb-10">
-        <h1 className="text-4xl font-bold text-center text-white mb-10">
-          Membership Plans
-        </h1>
-        {/* Billing period toggle */}
-        {/* <div className="flex justify-center mb-8">
-          <button
-            className={`px-6 py-2 rounded-l-lg font-semibold ${
-              billingPeriod === "monthly"
-                ? "bg-[#9135e2] text-white"
-                : "bg-[#232e4d] text-blue-200"
-            }`}
-            onClick={() => setBillingPeriod("monthly")}
-          >
-            Monthly
-          </button>
-          <button
-            className={`px-6 py-2 rounded-r-lg font-semibold ${
-              billingPeriod === "yearly"
-                ? "bg-[#9135e2] text-white"
-                : "bg-[#232e4d] text-blue-200"
-            }`}
-            onClick={() => setBillingPeriod("yearly")}
-          >
-            Yearly
-          </button>
-       </div> */}
+        <h1 className="text-4xl font-bold text-center text-white mb-10">Membership Plans</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {plans.map((plan, index) => {
             const periodData = plan[billingPeriod];
@@ -211,9 +185,7 @@ export default function Plans() {
                       ${periodData.price}
                     </p>
                     <p className="text-xs text-blue-300">
-                      {billingPeriod === "yearly"
-                        ? "Valid for 12 months"
-                        : "Billed monthly"}
+                      {billingPeriod === "yearly" ? "Valid for 12 months" : "Billed monthly"}
                     </p>
                   </div>
                   <ul className="flex flex-col gap-2 text-blue-100 text-sm mb-6">
@@ -231,23 +203,38 @@ export default function Plans() {
                     {isActive ? (
                       <button
                         onClick={cancelSubscription}
-                        disabled={loading}
-                        className="w-full cursor-pointer bg-red-600 text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:bg-red-700 transition-colors mt-4 disabled:opacity-60"
+                        disabled={cancelling}
+                        className="w-full cursor-pointer bg-red-600 text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:bg-red-700 transition-colors mt-4 disabled:opacity-60 flex items-center justify-center gap-2"
                       >
-                        {loading ? "Cancelling..." : "Cancel Subscription"}
+                        {cancelling ? (
+                          <>
+                            <span className="loader w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            Cancelling...
+                          </>
+                        ) : (
+                          "Cancel Subscription"
+                        )}
                       </button>
                     ) : (
                       <button
                         onClick={() => subscribe(periodData.planId)}
-                        className="w-full cursor-pointer bg-gradient-to-r from-[#9135e2] to-[#6d28d9] text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:from-[#a855f7] hover:to-[#7c3aed] transition-colors mt-4"
+                        disabled={loadingPlanId === periodData.planId}
+                        className="w-full cursor-pointer bg-gradient-to-r from-[#9135e2] to-[#6d28d9] text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:from-[#a855f7] hover:to-[#7c3aed] transition-colors mt-4 disabled:opacity-60 flex items-center justify-center gap-2"
                       >
-                        Subscribe Now
+                        {loadingPlanId === periodData.planId ? (
+                          <>
+                            <span className="loader w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            Processing...
+                          </>
+                        ) : (
+                          "Subscribe Now"
+                        )}
                       </button>
                     )}
                   </>
                 ) : (
                   <button
-                    onClick={() => router.push('/login')}
+                    onClick={() => router.push("/login")}
                     className="w-full cursor-pointer bg-gradient-to-r from-[#9135e2] to-[#6d28d9] text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:from-[#a855f7] hover:to-[#7c3aed] transition-colors mt-4"
                   >
                     Subscribe Now

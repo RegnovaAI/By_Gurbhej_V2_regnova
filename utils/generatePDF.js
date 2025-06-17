@@ -104,7 +104,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
         textColor: 255,
       },
       columnStyles: {
-        0: { cellWidth: 8 },
+        0: { cellWidth: 20 },
         1: { cellWidth: 40 },
         2: { cellWidth: 20 },
         3: { cellWidth: 60 },
@@ -150,7 +150,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
         textColor: 255,
       },
       columnStyles: {
-        0: { cellWidth: 8 },
+        0: { cellWidth: 20 },
         1: { cellWidth: 40 },
         2: { cellWidth: 20 },
         3: { cellWidth: 60 },
