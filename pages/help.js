@@ -12,8 +12,14 @@ export default function Help() {
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
       }}
-    >
-      <Sidebar />
+      >
+        <div className="hidden lg:flex h-full p-4">
+          <Sidebar />
+        </div>
+        <div className="mb-6 flex items-center md:hidden gap-4 px-8 pt-8">
+          <Sidebar />
+          <h1 className="text-2xl font-bold">Help & Support</h1>
+        </div>
       <div className="flex-1 p-8 flex flex-col items-center justify-center">
         <div className="bg-gray-800 rounded-lg shadow-lg p-8 max-w-xl w-full">
           <h1 className="text-3xl font-bold mb-4 text-white text-center">

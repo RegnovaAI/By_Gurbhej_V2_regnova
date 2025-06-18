@@ -485,13 +485,18 @@ export default function Dashboard() {
       }}
     >
       <Toaster position="top-right" /> {/* <-- Add Toaster here */}
-      <Sidebar />
+      <div className="hidden lg:flex h-full p-4">
+        <Sidebar />
+      </div>
       <div className="text-white flex-1 overflow-y-auto">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+          <div className="flex items-center md:hidden gap-4">
+            <Sidebar />
+          </div>
           <div className="text-xl font-semibold">Dashboard</div>
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"

@@ -152,27 +152,6 @@ export default function Header() {
             About us
           </Link>
           <Link
-            href="/mission"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="hover:text-blue-300 text-xl font-medium"
-          >
-            Mission
-          </Link>
-          <Link
-            href="/vision"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="hover:text-blue-300 text-xl font-medium"
-          >
-            Vision
-          </Link>
-          <Link
-            href="/career"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="hover:text-blue-300 text-xl font-medium"
-          >
-            Career
-          </Link>
-          <Link
             href="/plans"
             onClick={() => setIsMobileMenuOpen(false)}
             className="hover:text-blue-300 text-xl font-medium"
@@ -184,7 +163,7 @@ export default function Header() {
             onClick={() => setIsMobileMenuOpen(false)}
             className="hover:text-blue-300 text-xl font-medium"
           >
-            Pricing
+            Contact us
           </Link>
           {hasToken ? (
             <Link href="/profile" className="hover:text-blue-300 text-lg">

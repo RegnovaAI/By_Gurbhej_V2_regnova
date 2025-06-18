@@ -1,8 +1,9 @@
+"use client";
+
 import Sidebar from "@/components/Sidebar";
 import { BASE_URL } from "@/utils/api_constants";
 import React, { useEffect, useState } from "react";
 
-// Helper to group files as policy/report
 function groupByType(files) {
   return {
     policy: files.filter((f) => f.filename.toLowerCase().includes("policy")),
@@ -10,7 +11,6 @@ function groupByType(files) {
   };
 }
 
-// Download file handler
 const downloadReport = async (projectId, auditTypeId, filename, token) => {
   const url = `${BASE_URL}/project/${projectId}/audit/${auditTypeId}/download-report/${filename}`;
   const response = await fetch(url, {
@@ -48,7 +48,7 @@ export default function Documents() {
   const [deletingFiles, setDeletingFiles] = useState({});
 
   const token =
-    typeof window != "undefined" && localStorage.getItem("rg-token");
+    typeof window !== "undefined" && localStorage.getItem("rg-token");
 
   const fetchGroupedFiles = async () => {
     setLoading(true);
@@ -62,9 +62,7 @@ export default function Documents() {
       });
       const data = await res.json();
 
-      // Normalize: group audits under projects
       const grouped = {};
-
       data.forEach((item) => {
         const { project_id, project_name, audit_type_id, audit_name, files } =
           item;
@@ -79,7 +77,7 @@ export default function Documents() {
 
         grouped[project_id].audits.push({
           audit_type_id,
-          audit_name: audit_name,
+          audit_name,
           files,
         });
       });
@@ -120,7 +118,7 @@ export default function Documents() {
       if (!response.ok || result.status === "error") {
         alert(result.message || "Failed to delete file");
       } else {
-        await fetchGroupedFiles(); // Refetch updated list
+        await fetchGroupedFiles(); // Refresh
       }
     } catch (error) {
       alert("Error deleting file");
@@ -135,49 +133,60 @@ export default function Documents() {
 
   return (
     <div
-      className="flex bg-gray-900 flex-col w-screen h-screen lg:flex-row"
+      className="flex flex-col lg:flex-row h-screen overflow-hidden overflow-y-auto p-4"
       style={{
         backgroundImage: "url(/bg-hero.png)",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
       }}
     >
-      <Sidebar />
-      <div className="flex-1 p-8 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4 text-white">Documents</h1>
+      <div className="hidden lg:flex h-full">
+        <Sidebar />
+      </div>
+      <div className="flex-1 ">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center md:hidden gap-4">
+            <Sidebar />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Documents</h1>
+        </div>
+
         {loading && <div className="text-white">Loading...</div>}
+
         {!loading && groupedFiles.length === 0 && (
           <div className="text-white">No documents found.</div>
         )}
-        <ul>
+
+        <ul className="space-y-6">
           {groupedFiles.map((project, idx) => (
-            <li key={idx} className="bg-gray-800 rounded-lg shadow-md group transition-all p-3">
-              <h2 className="text-xl text-white font-semibold mb-2">
+            <li
+              key={idx}
+              className="bg-gray-800 rounded-lg shadow-md transition-all p-4 sm:p-5"
+            >
+              <h2 className="text-xl text-white font-semibold mb-3">
                 Project: {project.project_name}
               </h2>
 
-              {/* Loop audits */}
               {(project.audits || [])
                 .filter(
                   (audit) => audit.audit_name && audit.audit_name.trim() !== ""
                 )
                 .map((audit, auditIdx) => (
-                  <div key={auditIdx} className="ml-4 mb-4">
-                    <h3 className="text-lg text-gray-300 font-medium mb-2 border-b border-gray-700 pb-2 mb-4">
+                  <div key={auditIdx} className="ml-0 sm:ml-4 mb-6">
+                    <h3 className="text-lg text-gray-300 font-medium mb-3 border-b border-gray-700 pb-2">
                       Audit: {audit.audit_name}
                     </h3>
-                    <ul className="list-disc">
+                    <ul className="space-y-2">
                       {audit.files.map((file, fileIdx) => (
                         <li
                           key={fileIdx}
-                          className="flex justify-between items-center mb-2 text-gray-300"
+                          className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-gray-300 bg-gray-700 px-4 py-2 rounded-md"
                         >
-                          <span className="flex items-center">
-                            <span className="h-3 w-3 bg-green-500 rounded-full mr-2"></span>{" "}
-                            {/* Dot */}
+                          <div className="flex items-center mb-2 sm:mb-0">
+                            <span className="h-2.5 w-2.5 bg-green-500 rounded-full mr-2"></span>
                             {file.filename}
-                          </span>
-                          <div className="flex gap-2">
+                          </div>
+                          <div className="flex flex-wrap gap-2">
                             <button
                               className="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-md text-sm"
                               onClick={() =>

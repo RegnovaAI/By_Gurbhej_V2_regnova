@@ -258,9 +258,14 @@ export default function ProjectDetails() {
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
       }}>
-      <Sidebar />
+      <div className="hidden md:flex h-full">
+        <Sidebar />
+      </div>
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Breadcrumb */}
+        <div className="flex items-center md:hidden gap-4">
+          <Sidebar />
+        </div>
         <nav className="text-sm text-gray-400">
           <ol className="list-reset flex">
             <li>

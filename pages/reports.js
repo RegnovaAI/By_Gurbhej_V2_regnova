@@ -3,8 +3,8 @@ import { BASE_URL } from "@/utils/api_constants";
 import { generatePDFReport } from "@/utils/generatePDF";
 import JSZip from "jszip";
 import React, { useEffect, useState } from "react";
+import { saveAs } from "file-saver";
 
-// Helper to group files as policy/report
 function groupByType(files) {
   return {
     policy: files.filter((f) => f.filename.toLowerCase().includes("policy")),
@@ -45,14 +45,16 @@ async function downloadReportsAsPdfOrZip(results) {
 export default function Reports() {
   const [groupedFiles, setGroupedFiles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [downloadLoading, setDownloadLoading] = useState(false); // Loader for download
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const [selectedAuditType, setSelectedAuditType] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("rg-token");
+    if (!token) return;
     setLoading(true);
+
     fetch(`${BASE_URL}/user/files/grouped`, {
-      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -66,75 +68,87 @@ export default function Reports() {
 
   const downloadFiles = async (auditTypeId, projectId) => {
     const token = localStorage.getItem("rg-token");
-    const res = await fetch(
-      `http://localhost:8000/project/${projectId}/audit/${auditTypeId}/risk-report/download`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    setDownloadLoading(true);
+    setError("");
+    try {
+      const res = await fetch(
+        `${BASE_URL}/project/${projectId}/audit/${auditTypeId}/risk-report/download`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Download failed");
       }
-    );
 
-    if (!res.ok) {
-      const error = await res.json();
-      console.error("Download failed:", error.detail);
-      return;
+      const riskReport = await res.json();
+      downloadReportsAsPdfOrZip(riskReport?.results || []);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setDownloadLoading(false);
     }
-
-    const riskReport = await res.json();
-
-    downloadReportsAsPdfOrZip(riskReport?.results || []);
   };
 
   return (
     <div
-      className="flex bg-gray-900 flex-col w-screen h-screen lg:flex-row"
+      className="flex flex-col lg:flex-row min-h-screen bg-gray-900 text-white p-4"
       style={{
         backgroundImage: "url(/bg-hero.png)",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
       }}
     >
-      <Sidebar />
-      <div className="flex-1 p-8 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">Reports</h1>
-        {loading && <div>Loading...</div>}
-        {!loading && groupedFiles.length === 0 && <div>No reports found.</div>}
-        <ul>
+      <div className="hidden lg:flex h-full">
+        <Sidebar />
+      </div>
+      <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
+        <div className="mb-6 flex items-center gap-4">
+          <div className="flex items-center md:hidden gap-4">
+            <Sidebar />
+          </div>
+          <h1 className="text-2xl font-bold">Reports</h1>
+        </div>
+
+        {loading && <p>Loading reports...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        {!loading && groupedFiles.length === 0 && <p>No reports found.</p>}
+
+        <ul className="space-y-6">
           {groupedFiles.map((project, idx) => (
-            <li
-              key={idx}
-              className="bg-gray-800 rounded-lg shadow-md group transition-all p-3"
-            >
-              <h2 className="text-xl text-white font-semibold mb-2">
+            <li key={idx} className="bg-gray-800 rounded-lg p-4">
+              <h2 className="text-lg font-semibold mb-2">
                 Project: {project.project_name}
               </h2>
-
               {project.audits
                 .filter((audit) => audit.audit_type_id && audit.audit_name)
-                .map((audit, auditIdx) => (
-                  <div key={auditIdx} className="ml-4 mb-4">
-                    <h3 className="text-lg text-gray-300 font-medium mb-2 border-b border-gray-700 pb-2 mb-4">
-                      Audit: {audit.audit_name || "Unknown"}
+                .map((audit, aIdx) => (
+                  <div key={aIdx} className="ml-2 mb-4">
+                    <h3 className="text-md font-medium mb-2">
+                      Audit: {audit.audit_name.replace(".json", ".pdf")}
                     </h3>
 
                     {audit.files.length === 0 ? (
-                      <p className="text-gray-500 ml-4">No files available.</p>
+                      <p className="text-sm text-gray-400 ml-4">
+                        No files available.
+                      </p>
                     ) : (
-                      <ul className="list-disc">
-                        {audit.files.map((file, fileIdx) => (
+                      <ul className="list-disc pl-6">
+                        {audit.files.map((file, fIdx) => (
                           <li
-                            key={fileIdx}
-                            className="flex justify-between items-center p-2 text-gray-200"
+                            key={fIdx}
+                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2"
                           >
-                            <span className="flex items-center">
-                              <span className="h-3 w-3 bg-green-500 rounded-full mr-2"></span>{" "}
-                              {/* Dot */}
-                              {file.filename}
+                            <span className="text-sm">
+                              <span className="inline-block h-2 w-2 bg-green-500 rounded-full mr-2"></span>
+                              {file.filename.replace(".json", ".pdf")}
                             </span>
                             <button
-                              className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-5 py-2 rounded-lg text-sm font-semibold flex items-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="mt-2 sm:mt-0 bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-semibold transition disabled:opacity-50"
                               onClick={() => {
                                 setSelectedAuditType(audit.audit_type_id);
                                 downloadFiles(
@@ -151,7 +165,7 @@ export default function Reports() {
                               {downloadLoading &&
                               selectedAuditType === audit.audit_type_id ? (
                                 <span className="flex items-center">
-                                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
                                   Downloading...
                                 </span>
                               ) : (
