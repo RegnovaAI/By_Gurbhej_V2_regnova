@@ -144,8 +144,8 @@ export default function Reports() {
                             key={fIdx}
                             className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 gap-2"
                           >
-                            <span className="text-sm">
-                              <span className="inline-block h-2 w-2 bg-green-500 rounded-full mr-2 capitalize"></span>
+                          <span className="text-sm capitalize">
+                              <span className="inline-block h-2 w-2 bg-green-500 rounded-full mr-2"></span>
                               {file.filename.replace(".json", ".pdf")}
                             </span>
                             <div className="flex gap-2">
