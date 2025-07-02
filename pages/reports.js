@@ -46,6 +46,7 @@ export default function Reports() {
   const [groupedFiles, setGroupedFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(null);
   const [selectedAuditType, setSelectedAuditType] = useState(null);
   const [error, setError] = useState("");
 
@@ -122,7 +123,7 @@ export default function Reports() {
           {groupedFiles.map((project, idx) => (
             <li key={idx} className="bg-gray-800 rounded-lg p-4">
               <h2 className="text-lg font-semibold mb-2">
-                Project: {project.project_name}
+                Project: {project.project_name && project.project_name.charAt(0).toUpperCase() + project.project_name.slice(1)}
               </h2>
               {project.audits
                 .filter((audit) => audit.audit_type_id && audit.audit_name)
@@ -141,37 +142,96 @@ export default function Reports() {
                         {audit.files.map((file, fIdx) => (
                           <li
                             key={fIdx}
-                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2"
+                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 gap-2"
                           >
                             <span className="text-sm">
-                              <span className="inline-block h-2 w-2 bg-green-500 rounded-full mr-2"></span>
+                              <span className="inline-block h-2 w-2 bg-green-500 rounded-full mr-2 capitalize"></span>
                               {file.filename.replace(".json", ".pdf")}
                             </span>
-                            <button
-                              className="mt-2 sm:mt-0 bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-semibold transition disabled:opacity-50"
-                              onClick={() => {
-                                setSelectedAuditType(audit.audit_type_id);
-                                downloadFiles(
-                                  audit.audit_type_id,
-                                  project.project_id,
-                                  file.filename
-                                );
-                              }}
-                              disabled={
-                                downloadLoading &&
-                                selectedAuditType === audit.audit_type_id
-                              }
-                            >
-                              {downloadLoading &&
-                              selectedAuditType === audit.audit_type_id ? (
-                                <span className="flex items-center">
-                                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
-                                  Downloading...
-                                </span>
-                              ) : (
-                                "Download Report"
-                              )}
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-semibold transition disabled:opacity-50"
+                                onClick={() => {
+                                  setSelectedAuditType(audit.audit_type_id);
+                                  downloadFiles(
+                                    audit.audit_type_id,
+                                    project.project_id,
+                                    file.filename
+                                  );
+                                }}
+                                disabled={
+                                  downloadLoading &&
+                                  selectedAuditType === audit.audit_type_id
+                                }
+                              >
+                                {downloadLoading &&
+                                selectedAuditType === audit.audit_type_id ? (
+                                  <span className="flex items-center">
+                                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                                    Downloading...
+                                  </span>
+                                ) : (
+                                  "Download Report"
+                                )}
+                              </button>
+                              <button
+                                className={`bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-semibold transition disabled:opacity-50`}
+                                onClick={async () => {
+                                  setError("");
+                                  setDeleteLoading(`${project.project_id}-${audit.audit_type_id}-${file.filename}`);
+                                  try {
+                                    const token = localStorage.getItem("rg-token");
+                                    const res = await fetch(
+                                      `${BASE_URL}/project/${project.project_id}/audit/${audit.audit_type_id}/risk-report/${encodeURIComponent(file.filename)}`,
+                                      {
+                                        method: "DELETE",
+                                        headers: {
+                                          Authorization: `Bearer ${token}`,
+                                        },
+                                      }
+                                    );
+                                    if (!res.ok) {
+                                      const err = await res.json();
+                                      throw new Error(err.detail || "Delete failed");
+                                    }
+                                    // Remove the deleted file from UI
+                                    setGroupedFiles((prev) =>
+                                      prev.map((p) =>
+                                        p.project_id === project.project_id
+                                          ? {
+                                              ...p,
+                                              audits: p.audits.map((a) =>
+                                                a.audit_type_id === audit.audit_type_id
+                                                  ? {
+                                                      ...a,
+                                                      files: a.files.filter((f) => f.filename !== file.filename),
+                                                    }
+                                                  : a
+                                              ),
+                                            }
+                                          : p
+                                      )
+                                    );
+                                  } catch (e) {
+                                    setError(e.message);
+                                  } finally {
+                                    setDeleteLoading(null);
+                                  }
+                                }}
+                                disabled={
+                                  deleteLoading === `${project.project_id}-${audit.audit_type_id}-${file.filename}`
+                                }
+                              >
+                                {deleteLoading === `${project.project_id}-${audit.audit_type_id}-${file.filename}` ? (
+                                  <span className="flex items-center">
+                                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                                    Deleting...
+                                  </span>
+                                ) : (
+                                  "Delete"
+                                )}
+                              </button>
+                            </div>
                           </li>
                         ))}
                       </ul>
