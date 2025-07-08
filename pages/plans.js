@@ -49,7 +49,7 @@ export default function Plans() {
         "Tailored for established businesses with higher data volume and more complex compliance workflows. Includes everything in the SMB plan, plus prioritized risk alerts, automated audit trail generation, and integration with your internal systems for seamless operation.",
       features: [
         "8 Audits",
-        "500 AI Risk Reports",
+        "750 AI Risk Reports",
         "Policy check", "Validation check", "RegnovaPilot™",
         "PDF/CSV/JSON output",
         "Alert Scheduler",
