@@ -12,6 +12,7 @@ import CircleChart from "@/components/CircularChart";
 import ClauseCam from "@/components/ClausesCard";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { BASE_URL } from "@/utils/api_constants";
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState([]);
@@ -23,6 +24,46 @@ export default function UploadPage() {
   const [activeDashboardRow, setActiveDashboardRow] = useState(null);
   const [dnaScore, setDnaScore] = useState(null);
   const [isDemo, setIsDemo] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+
+  // Function to fetch analytics dashboard data
+  const fetchAnalyticsDashboard = async () => {
+    setLoadingAnalytics(true);
+    try {
+      const token = localStorage.getItem("rg-token");
+      const response = await fetch(
+        `${BASE_URL || "https://regnovaai-backend.onrender.com"}/analytics/dashboard`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setAnalyticsData(data);
+        console.log("Analytics dashboard data:", data);
+      } else {
+        console.error("Failed to fetch analytics dashboard:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching analytics dashboard:", error);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  // Fetch analytics data on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("rg-token");
+    if (token) {
+      fetchAnalyticsDashboard();
+    }
+  }, []);
 
   const toggleAuditType = (auditType) => {
     setSelectedAuditTypes((prevSelected) =>
@@ -270,7 +311,7 @@ export default function UploadPage() {
 
   const taggedClauses = riskReport[0]?.tagged_clauses || [];
 
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div
@@ -327,25 +368,25 @@ export default function UploadPage() {
                     })}
                   </div>
                   <div className="flex justify-center gap-4 mt-8">
-                    
                     <button
                       onClick={() => {
                         if (!localStorage.getItem("rg-token")) {
                           window.location.href = "/login";
                           return;
                         }
-                        router.push('profile')
+                        router.push("profile");
                       }}
                       className="px-6 py-2 font-semibold rounded-xl bg-blue-600 cursor-pointer text-white shadow-lg hover:scale-105 transition"
                     >
                       Continue
                     </button>
-                    {/* <button
-                      onClick={loadDemoFile}
-                      className="px-6 py-2 font-semibold rounded-xl cursor-pointer bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg hover:scale-105 transition"
+                    <button
+                      onClick={fetchAnalyticsDashboard}
+                      disabled={loadingAnalytics}
+                      className="px-6 py-2 font-semibold rounded-xl bg-green-600 cursor-pointer text-white shadow-lg hover:scale-105 transition disabled:opacity-50"
                     >
-                      Try Demo File
-                    </button> */}
+                      {loadingAnalytics ? "Loading..." : "Load Analytics"}
+                    </button>
                   </div>
                   {errorText && (
                     <p className="text-red-400 text-lg mt-4">{errorText}</p>
@@ -462,8 +503,44 @@ export default function UploadPage() {
                 </div>
               )}
 
+              {/* Analytics Dashboard Display */}
+              {analyticsData && (
+                <div className="mt-10 bg-[#101c3a] rounded-xl p-6 shadow-lg mx-auto max-w-4xl">
+                  <h2 className="text-2xl font-bold text-blue-200 mb-4 text-center">
+                    Analytics Dashboard
+                  </h2>
+                  <div className="flex gap-4 justify-center items-center">
+                    {Object.entries(analyticsData)
+                      .filter(([key]) => key !== "files_uploaded") // Remove files_uploaded
+                      .map(([key, value]) => (
+                      <div key={key} className="bg-[#1a2b4d] p-4 rounded-lg flex-1 max-w-sm text-center">
+                        <h3 className="text-lg font-semibold text-white capitalize mb-2">
+                          {key === "reports_generated" 
+                            ? "Policy Report Generated" 
+                            : key.replace(/_/g, " ")}
+                        </h3>
+                        <p className="text-blue-300 text-xl font-bold">
+                          {key === "last_updated" && typeof value === "string"
+                            ? (() => {
+                                const date = new Date(value);
+                                const day = String(date.getDate()).padStart(2, '0');
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const year = date.getFullYear();
+                                const hours = String(date.getHours()).padStart(2, '0');
+                                const minutes = String(date.getMinutes()).padStart(2, '0');
+                                return `${day}-${month}-${year} ${hours}:${minutes}`;
+                              })()
+                            : typeof value === "object"
+                            ? JSON.stringify(value, null, 2)
+                            : value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Optionally, you can add a way to select a row to show its risks */}
-              {/* Example: Click on a row to show its risks */}
               {riskReport.length > 0 && (
                 <div className="overflow-x-auto mt-10">
                   <h2 className="text-2xl font-bold text-blue-200 mb-4">

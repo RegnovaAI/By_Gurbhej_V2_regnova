@@ -5,7 +5,7 @@ import Link from "next/link";
 import { BASE_URL } from "@/utils/api_constants";
 import { useRouter } from "next/router";
 import { useDropzone } from "react-dropzone";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { generatePDFReport } from "@/utils/generatePDF";
@@ -141,7 +141,23 @@ export default function ProjectDetails() {
           body: form,
         }
       );
-      if (!res.ok) throw new Error("Failed to upload documents");
+
+      
+      if (!res.ok) {
+        // Handle specific 400 error for duplicate files
+        if (res.status === 400) {
+          console.log("Upload response:", res);
+          const errorData = await res.json();
+          toast.error(errorData.detail);
+          // Close modal and clear state even on error
+          setIsUploadModalOpen(false);
+          setUploadFiles([]);
+          setSelectedAuditType(null);
+          return;
+        }
+        throw new Error("Failed to upload documents");
+      }
+      
       toast.success("Documents uploaded successfully!");
       setIsUploadModalOpen(false);
       setUploadFiles([]);
@@ -563,6 +579,16 @@ export default function ProjectDetails() {
           </div>
         </div>
       )}
+      
+      {/* Toast notifications with high z-index */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            zIndex: 9999,
+          },
+        }}
+      />
     </div>
   );
 }
