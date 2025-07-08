@@ -1,2 +1,2 @@
-//export const auditTypes = ['SOC 1', 'SOC 2', 'SOX', 'PCI-DSS', 'HIPAA', 'GDPR','ISO 27001'];
-export const auditTypes = ['SOC 1', 'SOC 2', 'SOX', 'PCI-DSS', 'HIPAA', 'GDPR', 'NIST Cybersecurity Framework (CSF)','CSA STAR (Cloud Security Alliance - Security, Trust, Assurance & Risk)','FedRAMP', 'ISMS/ITGC frameworks (custom frameworks in banking/insurance)','TISAX (Trusted Information Security Assessment Exchange)', 'CMMC (Cybersecurity Maturity Model Certification)','ISO 27001'];
+export const auditTypes = ['SOC 1', 'SOC 2', 'SOX', 'PCI-DSS', 'HIPAA', 'GDPR','ISO 27001'];
+//export const auditTypes = ['SOC 1', 'SOC 2', 'SOX', 'PCI-DSS', 'HIPAA', 'GDPR', 'NIST Cybersecurity Framework (CSF)','CSA STAR (Cloud Security Alliance - Security, Trust, Assurance & Risk)','FedRAMP', 'ISMS/ITGC frameworks (custom frameworks in banking/insurance)','TISAX (Trusted Information Security Assessment Exchange)', 'CMMC (Cybersecurity Maturity Model Certification)','ISO 27001'];
