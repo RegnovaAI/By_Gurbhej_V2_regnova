@@ -31,13 +31,11 @@ export default function UploadPage() {
   const fetchAnalyticsDashboard = async () => {
     setLoadingAnalytics(true);
     try {
-      const token = localStorage.getItem("rg-token");
       const response = await fetch(
         `${BASE_URL || "https://regnovaai-backend.onrender.com"}/analytics/dashboard`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
@@ -47,6 +45,7 @@ export default function UploadPage() {
         const data = await response.json();
         setAnalyticsData(data);
         console.log("Analytics dashboard data:", data);
+        console.log("Available keys:", Object.keys(data));
       } else {
         console.error("Failed to fetch analytics dashboard:", response.statusText);
       }
@@ -59,10 +58,7 @@ export default function UploadPage() {
 
   // Fetch analytics data on component mount
   useEffect(() => {
-    const token = localStorage.getItem("rg-token");
-    if (token) {
-      fetchAnalyticsDashboard();
-    }
+    fetchAnalyticsDashboard();
   }, []);
 
   const toggleAuditType = (auditType) => {
@@ -511,11 +507,11 @@ export default function UploadPage() {
                   </h2>
                   <div className="flex gap-4 justify-center items-center">
                     {Object.entries(analyticsData)
-                      .filter(([key]) => key !== "files_uploaded") // Remove files_uploaded
+                      .filter(([key]) => key === "total_reports_generated" || key === "last_updated") // Show only these 2 fields
                       .map(([key, value]) => (
                       <div key={key} className="bg-[#1a2b4d] p-4 rounded-lg flex-1 max-w-sm text-center">
                         <h3 className="text-lg font-semibold text-white capitalize mb-2">
-                          {key === "reports_generated" 
+                          {key === "total_reports_generated" 
                             ? "Policy Report Generated" 
                             : key.replace(/_/g, " ")}
                         </h3>
