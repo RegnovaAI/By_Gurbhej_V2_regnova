@@ -417,7 +417,12 @@ export default function Plans() {
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-2 text-center tracking-wide">{plan.title}</h2>
                   <div className="text-center mb-4 border-b border-blue-900 pb-4">
-                    <p className="text-4xl font-extrabold text-white mb-1">${periodData.price}</p>
+                    {plan.title === "Enterprise" ? (
+                          <p className="text-xl font-bold text-yellow-400 mb-1">Contact Us</p>
+                        ) : (
+                          <p className="text-4xl font-extrabold text-white mb-1">${periodData.price}</p>
+                        )}
+
                     <p className="text-xs text-blue-300">{billingPeriod === "yearly" ? "Valid for 12 months" : "Billed monthly"}</p>
                   </div>
                   <ul className="flex flex-col gap-2 text-blue-100 text-sm mb-6">
