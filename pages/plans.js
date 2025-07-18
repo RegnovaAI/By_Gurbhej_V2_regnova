@@ -308,10 +308,22 @@ export default function Plans() {
     {
       title: "Enterprise",
       comingSoon: true,
-      yearly: { price: 9999, planId: "price_1RZCMBQZZmKBfiwEcQRN5FBF" },
-      monthly: { price: 999, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
-      content: "Built for large enterprises...",
-      features: ["10+ Audits", "2000+ AI Risk Reports", "Policy Check", "Validation Check", "RegnovaPilot™", "PDF/CSV/JSON output", "Alert Scheduler", "API", "Account Manager", "Full customisation"]
+      yearly: { price: null, planId: "price_1RZCMBQZZmKBfiwEcQRN5FBF" },
+      monthly: { price: null, planId: "price_1RZCMBQZZmKBfiwEEME3SJNl" },
+      contactOnly: true,
+      content: "Built for large enterprises and regulated industries...",
+      features: [
+        "10+ Audits",
+        "2000+ AI Risk Reports",
+        "Policy Check",
+        "Validation Check",
+        "RegnovaPilot™",
+        "PDF/CSV/JSON output",
+        "Alert Scheduler",
+        "API",
+        "Account Manager",
+        "Full customisation"
+      ]
     }
   ];
 
