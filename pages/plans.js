@@ -443,7 +443,7 @@ export default function Plans() {
                   </ul>
                 </div>
                 {plan.comingSoon ? (
-                  <button disabled className="w-full cursor-not-allowed bg-gray-600 text-white py-2 px-6 rounded-lg font-semibold shadow-md opacity-70 mt-4">Coming Soon</button>
+                  <button disabled className="w-full cursor-not-allowed bg-gray-600 text-white py-2 px-6 rounded-lg font-semibold shadow-md opacity-70 mt-4">Launching Soon</button>
                 ) : isLoggedIn ? (
                   isActive ? (
                     <button onClick={cancelSubscription} disabled={cancelling} className="w-full bg-red-600 text-white py-2 px-6 rounded-lg font-semibold shadow-md hover:bg-red-700 transition-colors mt-4 disabled:opacity-60">
