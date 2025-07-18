@@ -431,11 +431,11 @@ export default function Plans() {
                       )}
 
 
-                      {plan.title !== "Enterprise" && (
-                          <p className="text-xs text-blue-300">
-                            {billingPeriod === "yearly" ? "Valid for 12 months" : "Billed monthly"}
-                          </p>
-                        )}
+                    {plan.title !== "Enterprise" && (
+                        <p className="text-xs text-blue-300">
+                          {billingPeriod === "yearly" ? "Valid for 12 months" : "Billed monthly"}
+                        </p>
+                      )}
 
                   </div>
                   <ul className="flex flex-col gap-2 text-blue-100 text-sm mb-6">
