@@ -287,7 +287,7 @@ export default function Plans() {
       yearly: { price: 369, planId: "price_1RZCI8QZZmKBfiwEam2eiKih" },
       monthly: { price: 36, planId: "price_1RZCHMQZZmKBfiwEuP6npVF6" },
       content: "Perfect for early-stage teams...",
-      features: ["2 Audits", "50 AI Risk Reports", "Policy check", "PDF output", "Free 30 days trial"]
+      features: ["3 Audits", "50 AI Risk Reports", "Policy check", "PDF output", "Free 30 days trial"]
     },
     {
       title: "Team",
@@ -295,7 +295,7 @@ export default function Plans() {
       yearly: { price: 2499, planId: "price_1RaDPEQZZmKBfiwEezQkOHdu" },
       monthly: { price: 278, planId: "price_1RZCJJQZZmKBfiwEfrMW6IvY" },
       content: "Designed for growing SMBs...",
-      features: ["4 Audits", "250 AI Risk Reports", "Policy check", "Validation check", "PDF/CSV output", "Free 7 days trial"]
+      features: ["7 Audits", "250 AI Risk Reports", "Policy check", "Validation check", "PDF/CSV output", "Free 7 days trial"]
     },
     {
       title: "Pro",
@@ -303,7 +303,7 @@ export default function Plans() {
       yearly: { price: 5499, planId: "price_1RaDQKQZZmKBfiwEohFw1u2i" },
       monthly: { price: 538, planId: "price_1RZCKUQZZmKBfiwEmEdHGAhE" },
       content: "Tailored for established businesses...",
-      features: ["8 Audits", "750 AI Risk Reports", "Policy check", "Validation check", "RegnovaPilot™", "PDF/CSV/JSON output", "Alert Scheduler"]
+      features: ["10 Audits", "750 AI Risk Reports", "Policy check", "Validation check", "RegnovaPilot™", "PDF/CSV/JSON output", "Alert Scheduler"]
     },
     {
       title: "Enterprise",
@@ -431,7 +431,12 @@ export default function Plans() {
                       )}
 
 
-                    <p className="text-xs text-blue-300">{billingPeriod === "yearly" ? "Valid for 12 months" : "Billed monthly"}</p>
+                      {plan.title !== "Enterprise" && (
+                          <p className="text-xs text-blue-300">
+                            {billingPeriod === "yearly" ? "Valid for 12 months" : "Billed monthly"}
+                          </p>
+                        )}
+
                   </div>
                   <ul className="flex flex-col gap-2 text-blue-100 text-sm mb-6">
                     {plan.features.map((feature, i) => (
