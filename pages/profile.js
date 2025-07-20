@@ -1,7 +1,7 @@
 import Sidebar from "../components/Sidebar";
 import { Search, User, ChevronRight, X, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { auditTypes } from "@/utils/constant";
+import { auditTypes, scopeOptions } from "@/utils/constant";
 import { useDropzone } from "react-dropzone";
 import Link from "next/link";
 import { BASE_URL } from "@/utils/api_constants";
@@ -39,6 +39,7 @@ export default function Dashboard() {
   // Modal & form state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAuditTypes, setSelectedAuditTypes] = useState([]);
+  const [selectedScopes, setSelectedScopes] = useState({}); // New state for scopes
   const [selectedFile, setSelectedFile] = useState([]);
   const [errorText, setErrorText] = useState("");
   const [formData, setFormData] = useState({
@@ -109,17 +110,47 @@ export default function Dashboard() {
 
   // Audit type selection
   const toggleAuditType = (auditType) => {
-    setSelectedAuditTypes((prevSelected) =>
-      prevSelected.includes(auditType)
-        ? prevSelected.filter((type) => type !== auditType)
-        : [...prevSelected, auditType]
-    );
+    setSelectedAuditTypes((prevSelected) => {
+      const isCurrentlySelected = prevSelected.includes(auditType);
+      let newSelected;
+      
+      if (isCurrentlySelected) {
+        // Remove the audit type
+        newSelected = prevSelected.filter((type) => type !== auditType);
+        // Clear scopes for this audit type
+        setSelectedScopes(prev => {
+          const newScopes = { ...prev };
+          delete newScopes[auditType];
+          return newScopes;
+        });
+      } else {
+        // Add the audit type
+        newSelected = [...prevSelected, auditType];
+      }
+      
+      return newSelected;
+    });
     setErrorText("");
   };
 
   // Remove audit type
   const removeAuditType = (auditType) => {
     setSelectedAuditTypes((prev) => prev.filter((type) => type !== auditType));
+  };
+
+  // Handle scope selection
+  const toggleScope = (auditType, scope) => {
+    setSelectedScopes(prev => {
+      const currentScopes = prev[auditType] || [];
+      const isSelected = currentScopes.includes(scope);
+      
+      return {
+        ...prev,
+        [auditType]: isSelected
+          ? currentScopes.filter(s => s !== scope)
+          : [...currentScopes, scope]
+      };
+    });
   };
 
   // Handle input change for project form
@@ -143,15 +174,35 @@ export default function Dashboard() {
       setErrorText("Select at least one audit type.");
       return;
     }
-    // if (!selectedFile || selectedFile.length === 0) {
-    //   setErrorText("Please upload at least one file.");
-    //   return;
-    // }
+
+    // Check if required scopes are selected for audit types that need them
+    const auditTypesWithScopes = selectedAuditTypes.filter(type => scopeOptions[type]);
+    const missingScopeAuditTypes = auditTypesWithScopes.filter(type => 
+      !selectedScopes[type] || selectedScopes[type].length === 0
+    );
+    
+    if (missingScopeAuditTypes.length > 0) {
+      setErrorText(`Please select at least one scope for: ${missingScopeAuditTypes.join(', ')}`);
+      return;
+    }
 
     setErrorText("");
     const form = new FormData();
     form.append("name", formData.name);
     selectedAuditTypes.forEach((type) => form.append("audittypes", type));
+    
+    // Add scope data to form - send as JSON for nested structure
+    const scopeData = {};
+    Object.keys(selectedScopes).forEach(auditType => {
+      if (selectedScopes[auditType] && selectedScopes[auditType].length > 0) {
+        scopeData[auditType] = selectedScopes[auditType];
+      }
+    });
+    
+    if (Object.keys(scopeData).length > 0) {
+      form.append("scopes", JSON.stringify(scopeData));
+    }
+    
     selectedFile.forEach((file) => form.append("files", file));
 
     try {
@@ -178,6 +229,7 @@ export default function Dashboard() {
         description: "",
       });
       setSelectedAuditTypes([]);
+      setSelectedScopes({}); // Clear scopes
       setSelectedFile([]);
       // Refresh projects list
       setProjectsLoading(true);
@@ -204,6 +256,8 @@ export default function Dashboard() {
       riskLevel: "Low",
       description: "",
     });
+    setSelectedAuditTypes([]);
+    setSelectedScopes({}); // Clear scopes when closing modal
   };
 
   // File handling for Add Project & Edit Project
@@ -325,7 +379,25 @@ export default function Dashboard() {
 
   // Edit project modal
   const openEditProjectModal = (project) => {
-    setEditProjectData({ ...project });
+    // Transform the project data to match expected structure
+    const transformedProject = {
+      ...project,
+      audittypes: project.audittypes?.map(at => at.name) || []
+    };
+    
+    setEditProjectData(transformedProject);
+    
+    // Initialize scopes for edit mode
+    const projectScopes = {};
+    if (project.audittypes && Array.isArray(project.audittypes)) {
+      project.audittypes.forEach(auditTypeObj => {
+        if (auditTypeObj.name && auditTypeObj.scopes && Array.isArray(auditTypeObj.scopes)) {
+          projectScopes[auditTypeObj.name] = auditTypeObj.scopes;
+        }
+      });
+    }
+    setSelectedScopes(projectScopes);
+    
     setIsEditProjectOpen(true);
   };
 
@@ -334,12 +406,35 @@ export default function Dashboard() {
     e.preventDefault();
     if (!editProjectData?.name) return;
 
+    // Check if required scopes are selected for audit types that need them
+    const auditTypesWithScopes = (editProjectData?.audittypes || []).filter(type => scopeOptions[type]);
+    const missingScopeAuditTypes = auditTypesWithScopes.filter(type => 
+      !selectedScopes[type] || selectedScopes[type].length === 0
+    );
+    
+    if (missingScopeAuditTypes.length > 0) {
+      toast.error(`Please select at least one scope for: ${missingScopeAuditTypes.join(', ')}`);
+      return;
+    }
+
     const formData = new FormData();
     formData.append("name", editProjectData.name);
 
     (editProjectData?.audittypes || []).forEach((type) => {
       formData.append("audittypes", type);
     });
+
+    // Add scope data to form - send as JSON for nested structure
+    const scopeData = {};
+    Object.keys(selectedScopes).forEach(auditType => {
+      if (selectedScopes[auditType] && selectedScopes[auditType].length > 0) {
+        scopeData[auditType] = selectedScopes[auditType];
+      }
+    });
+    
+    if (Object.keys(scopeData).length > 0) {
+      formData.append("scopes", JSON.stringify(scopeData));
+    }
 
     selectedFile.forEach((file) => {
       formData.append("files", file);
@@ -357,7 +452,18 @@ export default function Dashboard() {
       if (res.ok) {
         toast.success("Project updated successfully");
         setIsEditProjectOpen(false);
-        // refresh data or call a refetch here
+        setSelectedScopes({}); // Clear scopes
+        
+        // Refresh projects list
+        setProjectsLoading(true);
+        const projectsRes = await fetch(`${BASE_URL}/projects`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const projectsData = await projectsRes.json();
+        setProjects(
+          Array.isArray(projectsData) ? projectsData : projectsData.projects || []
+        );
+        setProjectsLoading(false);
       } else {
         toast.error(data.detail || "Failed to update project");
       }
@@ -578,7 +684,7 @@ export default function Dashboard() {
           onClick={closeModal}
         >
           <div
-            className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 shadow-2xl border border-gray-700"
+            className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -633,6 +739,50 @@ export default function Dashboard() {
                     );
                   })}
                 </div>
+
+                {/* Scope Selection */}
+                {selectedAuditTypes.some(type => scopeOptions[type]) && (
+                  <div className="mb-8">
+                    <h3 className="mb-5 text-3xl font-semibold text-white-200">
+                      Select Scopes
+                    </h3>
+                    {selectedAuditTypes
+                      .filter(type => scopeOptions[type])
+                      .map(auditType => (
+                        <div key={auditType} className="mb-6">
+                          <h4 className="mb-3 text-xl font-semibold text-blue-400">
+                            {auditType} Scopes
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            {scopeOptions[auditType].map(scope => {
+                              const isSelected = selectedScopes[auditType]?.includes(scope) || false;
+                              return (
+                                <label
+                                  key={scope}
+                                  className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm ${
+                                    isSelected 
+                                      ? 'bg-blue-600 border-blue-400' 
+                                      : 'bg-[#192447] border-[#2e3a5e] hover:border-blue-400'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => toggleScope(auditType, scope)}
+                                    className="form-checkbox w-4 h-4 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                  <span className="text-white font-medium">
+                                    {scope}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
                 {errorText && (
                   <p className="text-red-400 text-lg mt-4">{errorText}</p>
                 )}
@@ -691,7 +841,7 @@ export default function Dashboard() {
           onClick={() => setIsEditUserOpen(false)}
         >
           <div
-            className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-700"
+            className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -781,7 +931,7 @@ export default function Dashboard() {
       {/* Delete Project Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold text-white mb-4">
               Delete Project
             </h2>
@@ -809,7 +959,7 @@ export default function Dashboard() {
       {/* Upload Docs Modal */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold text-white mb-4">
               Upload Documents
             </h2>
@@ -883,7 +1033,7 @@ export default function Dashboard() {
       {isEditProjectOpen && (
         <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
           <div
-            className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 shadow-2xl border border-gray-700"
+            className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -935,13 +1085,22 @@ export default function Dashboard() {
                           onChange={() => {
                             setEditProjectData((prev) => {
                               const prevTypes = prev?.audittypes || [];
+                              const newTypes = prevTypes.includes(auditType)
+                                ? prevTypes.filter((type) => type !== auditType)
+                                : [...prevTypes, auditType];
+                              
+                              // Clear scopes when deselecting audit type
+                              if (prevTypes.includes(auditType)) {
+                                setSelectedScopes(prevScopes => {
+                                  const newScopes = { ...prevScopes };
+                                  delete newScopes[auditType];
+                                  return newScopes;
+                                });
+                              }
+                              
                               return {
                                 ...prev,
-                                audittypes: prevTypes.includes(auditType)
-                                  ? prevTypes.filter(
-                                      (type) => type !== auditType
-                                    )
-                                  : [...prevTypes, auditType],
+                                audittypes: newTypes,
                               };
                             });
                           }}
@@ -954,6 +1113,50 @@ export default function Dashboard() {
                     );
                   })}
                 </div>
+
+                {/* Scope Selection for Edit Project */}
+                {(editProjectData?.audittypes || []).some(type => scopeOptions[type]) && (
+                  <div className="mb-8">
+                    <h3 className="mb-5 text-3xl font-semibold text-white-200">
+                      Select Scopes
+                    </h3>
+                    {(editProjectData?.audittypes || [])
+                      .filter(type => scopeOptions[type])
+                      .map(auditType => (
+                        <div key={auditType} className="mb-6">
+                          <h4 className="mb-3 text-xl font-semibold text-blue-400">
+                            {auditType} Scopes
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            {scopeOptions[auditType].map(scope => {
+                              const isSelected = selectedScopes[auditType]?.includes(scope) || false;
+                              return (
+                                <label
+                                  key={scope}
+                                  className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm ${
+                                    isSelected 
+                                      ? 'bg-blue-600 border-blue-400' 
+                                      : 'bg-[#192447] border-[#2e3a5e] hover:border-blue-400'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => toggleScope(auditType, scope)}
+                                    className="form-checkbox w-4 h-4 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                  <span className="text-white font-medium">
+                                    {scope}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
                 {/* File upload section for Edit Project */}
                 {selectedFile && selectedFile.length > 0 && (
                   <div className="mt-6">

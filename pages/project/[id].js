@@ -9,7 +9,7 @@ import toast, { Toaster } from "react-hot-toast";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { generatePDFReport } from "@/utils/generatePDF";
-import { auditTypes } from "@/utils/constant";
+import { auditTypes, scopeOptions } from "@/utils/constant";
 
 async function downloadReportsAsPdfOrZip(results) {
   if (!results || results.length === 0) return;
@@ -53,10 +53,26 @@ export default function ProjectDetails() {
   const [isAddAuditModalOpen, setIsAddAuditModalOpen] = useState(false);
   const [addAuditLoading, setAddAuditLoading] = useState(false);
   const [auditTypeName, setAuditTypeName] = useState("");
+  const [selectedScopes, setSelectedScopes] = useState([]); // New state for scopes
   const [warningMsg, setWarningMsg] = useState(""); // For warning modal
 
   const removeUploadFile = (index) => {
     setUploadFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Handle scope selection
+  const toggleScope = (scope) => {
+    setSelectedScopes(prev => 
+      prev.includes(scope) 
+        ? prev.filter(s => s !== scope)
+        : [...prev, scope]
+    );
+  };
+
+  // Handle audit type selection and clear scopes when changing audit type
+  const handleAuditTypeChange = (type) => {
+    setAuditTypeName(type);
+    setSelectedScopes([]); // Clear scopes when changing audit type
   };
 
   // Enhanced error handling for fetchProjectDetails
@@ -237,14 +253,27 @@ export default function ProjectDetails() {
   const handleAddAudit = async (e) => {
     e.preventDefault();
     if (!auditTypeName.trim()) {
-      toast.error("Please enter an audit type name.");
+      toast.error("Please select an audit type.");
       return;
     }
+
+    // Check if scopes are required and selected
+    if (scopeOptions[auditTypeName] && selectedScopes.length === 0) {
+      toast.error(`Please select at least one scope for ${auditTypeName}.`);
+      return;
+    }
+
     setAddAuditLoading(true);
     try {
       const token = localStorage.getItem("rg-token");
       const formData = new FormData();
       formData.append("audit_type_name", auditTypeName);
+      
+      // Add scope data if scopes are selected
+      if (selectedScopes.length > 0) {
+        formData.append("scopes", JSON.stringify(selectedScopes));
+      }
+
       const res = await fetch(
         `${BASE_URL}/project/${projectDetails.id}/audit/add`,
         {
@@ -259,6 +288,7 @@ export default function ProjectDetails() {
       toast.success("Audit type added!");
       setIsAddAuditModalOpen(false);
       setAuditTypeName("");
+      setSelectedScopes([]); // Clear scopes
       // Refresh project details to show new audit
       fetchProjectDetails(projectDetails.id);
     } catch (err) {
@@ -492,20 +522,11 @@ export default function ProjectDetails() {
 
       {isAddAuditModalOpen && (
         <div className="fixed inset-0 bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold text-white mb-4">
               Add Audit Type
             </h2>
             <form onSubmit={handleAddAudit}>
-              {/* <input
-                type="text"
-                className="w-full px-4 py-2 rounded bg-gray-700 text-white mb-4"
-                placeholder="Audit Type Name"
-                value={auditTypeName}
-                onChange={(e) => setAuditTypeName(e.target.value)}
-                disabled={addAuditLoading}
-                autoFocus
-              /> */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                 {auditTypes.map((type) => (
                   <label
@@ -515,14 +536,14 @@ export default function ProjectDetails() {
                         ? "bg-purple-700 border-purple-500"
                         : "bg-[#192447] border-[#2e3a5e] hover:border-blue-400"
                     }`}
-                    onClick={() => setAuditTypeName(type)}
+                    onClick={() => handleAuditTypeChange(type)}
                   >
                     <input
                       type="radio"
                       name="auditTypeRadio"
                       value={type}
                       checked={auditTypeName === type}
-                      onChange={() => setAuditTypeName(type)}
+                      onChange={() => handleAuditTypeChange(type)}
                       className="form-radio accent-purple-500"
                       disabled={addAuditLoading}
                     />
@@ -530,10 +551,47 @@ export default function ProjectDetails() {
                   </label>
                 ))}
               </div>
+
+              {/* Scope Selection */}
+              {auditTypeName && scopeOptions[auditTypeName] && (
+                <div className="mb-6">
+                  <h3 className="mb-3 text-lg font-semibold text-white">
+                    Select Scopes for {auditTypeName}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                    {scopeOptions[auditTypeName].map(scope => (
+                      <label
+                        key={scope}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm border ${
+                          selectedScopes.includes(scope)
+                            ? 'bg-blue-600 border-blue-400' 
+                            : 'bg-[#192447] border-[#2e3a5e] hover:border-blue-400'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedScopes.includes(scope)}
+                          onChange={() => toggleScope(scope)}
+                          className="form-checkbox w-4 h-4 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                          disabled={addAuditLoading}
+                        />
+                        <span className="text-white font-medium">
+                          {scope}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex space-x-3">
                 <button
                   type="button"
-                  onClick={() => setIsAddAuditModalOpen(false)}
+                  onClick={() => {
+                    setIsAddAuditModalOpen(false);
+                    setAuditTypeName("");
+                    setSelectedScopes([]);
+                  }}
                   className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors cursor-pointer"
                   disabled={addAuditLoading}
                 >
