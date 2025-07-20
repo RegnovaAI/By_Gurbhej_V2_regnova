@@ -494,6 +494,7 @@ export async function generatePDFReport(filename, riskReport) {
           halign: "center",
           valign: "middle",
           fontStyle: "bold",
+          minCellHeight: 25,
         },
         1: { cellWidth: 40 },
         2: { cellWidth: 20 },
