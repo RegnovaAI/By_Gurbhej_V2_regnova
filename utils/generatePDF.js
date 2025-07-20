@@ -186,16 +186,23 @@
 
 
 
-
-
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+// ⬅️ Provide your base64 or image path
+const logoPath = "C:/Users/Public/Projects/RegnovaAI/RegnovaAI_MVP/Images/regnovaai-logo.png"; // can be URL or base64
+
 export function generatePDFReport(filename, riskReport, returnBlob = false) {
   const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
 
-  // ======= Title =======
+  // ==== Optional: Preload logo (async optional version available if needed) ====
+  const logoSize = { width: 30, height: 12 };
+
+  // ======= Title Page Header =======
+  doc.addImage(logoPath, "PNG", pageWidth - logoSize.width - 14, 10, logoSize.width, logoSize.height);
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.text("RegnovaAI Compliance Risk Report", 14, 20);
@@ -215,7 +222,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
 
   doc.setFontSize(12);
   doc.setTextColor(40);
-  doc.text("Risk Summary:", 14, 42);  // shifted down from 38 → 42
+  doc.text("Risk Summary:", 14, 42);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
@@ -226,77 +233,24 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
   doc.setTextColor(0, 150, 0);
   doc.text(`Low: ${counts.Low}`, 110, 50);
 
-  // ======= Helper =======
   const getClauseText = (item) =>
     item.issue || item.missing || item.redundant || "—";
 
   let startY = 58;
 
-  // ======= Risk Issues Table =======
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(40);
-  doc.text("Identified Risk Issues", 14, startY);
-  doc.line(14, startY + 2, 196, startY + 2);
-  startY += 6;
-
-  autoTable(doc, {
-    startY: startY,
-    head: [["#", "Issue", "Risk Level", "Explanation", "Suggestion"]],
-    body: riskReport.risks.map((item, i) => [
-      i + 1,
-      getClauseText(item),
-      item.risk_level,
-      item.explanation,
-      item.suggestion,
-    ]),
-    styles: {
-      fontSize: 9,
-      overflow: "linebreak",
-      cellPadding: 3,
-      valign: "top",
-    },
-    headStyles: {
-      fillColor: [22, 78, 99],
-      textColor: 255,
-    },
-    columnStyles: {
-      0: { cellWidth: 10 },
-      1: { cellWidth: 40 },
-      2: { cellWidth: 20 },
-      3: { cellWidth: 55 },
-      4: { cellWidth: 55 },
-    },
-    margin: { left: 20, right: 20 },
-    didParseCell: function (data) {
-      const risk = data.row.raw[2];
-      if (data.section === "body") {
-        if (risk === "High") {
-          data.cell.styles.fillColor = [255, 230, 230];
-        } else if (risk === "Medium") {
-          data.cell.styles.fillColor = [255, 250, 205];
-        } else if (risk === "Low") {
-          data.cell.styles.fillColor = [220, 255, 220];
-        }
-      }
-    },
-  });
-
-  startY = doc.lastAutoTable.finalY + 12;
-
-  // ======= Missing Clauses Table =======
-  if (riskReport.missing_clauses?.length > 0) {
+  // ==== Section Renderer Function ====
+  const renderSection = (title, data, headers) => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
-    doc.text("Missing Clauses", 14, startY);
-    doc.line(14, startY + 2, 196, startY + 2);
-    startY += 6;
+    doc.text(title, 14, startY);
+    doc.line(14, startY + 1.5, 196, startY + 1.5);
+    startY += 3;
 
     autoTable(doc, {
       startY: startY,
-      head: [["#", "Missing Clause", "Risk Level", "Explanation", "Suggestion"]],
-      body: riskReport.missing_clauses.map((item, i) => [
+      head: [headers],
+      body: data.map((item, i) => [
         i + 1,
         getClauseText(item),
         item.risk_level,
@@ -336,61 +290,53 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     });
 
     startY = doc.lastAutoTable.finalY + 12;
+  };
+
+  // ==== Risk Issues Table ====
+  renderSection("Identified Risk Issues", riskReport.risks, [
+    "#",
+    "Issue",
+    "Risk Level",
+    "Explanation",
+    "Suggestion",
+  ]);
+
+  // ==== Missing Clauses Table ====
+  if (riskReport.missing_clauses?.length > 0) {
+    renderSection("Missing Clauses", riskReport.missing_clauses, [
+      "#",
+      "Missing Clause",
+      "Risk Level",
+      "Explanation",
+      "Suggestion",
+    ]);
   }
 
-  // ======= Redundant Clauses Table =======
+  // ==== Redundant Clauses Table ====
   if (riskReport.redundant_clauses?.length > 0) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.setTextColor(40);
-    doc.text("Redundant Clauses", 14, startY);
-    doc.line(14, startY + 2, 196, startY + 2);
-    startY += 6;
-
-    autoTable(doc, {
-      startY: startY,
-      head: [["#", "Redundant Clause", "Risk Level", "Explanation", "Suggestion"]],
-      body: riskReport.redundant_clauses.map((item, i) => [
-        i + 1,
-        getClauseText(item),
-        item.risk_level,
-        item.explanation,
-        item.suggestion,
-      ]),
-      styles: {
-        fontSize: 9,
-        overflow: "linebreak",
-        cellPadding: 3,
-        valign: "top",
-      },
-      headStyles: {
-        fillColor: [22, 78, 99],
-        textColor: 255,
-      },
-      columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 55 },
-        4: { cellWidth: 55 },
-      },
-      margin: { left: 20, right: 20 },
-      didParseCell: function (data) {
-        const risk = data.row.raw[2];
-        if (data.section === "body") {
-          if (risk === "High") {
-            data.cell.styles.fillColor = [255, 230, 230];
-          } else if (risk === "Medium") {
-            data.cell.styles.fillColor = [255, 250, 205];
-          } else if (risk === "Low") {
-            data.cell.styles.fillColor = [220, 255, 220];
-          }
-        }
-      },
-    });
+    renderSection("Redundant Clauses", riskReport.redundant_clauses, [
+      "#",
+      "Redundant Clause",
+      "Risk Level",
+      "Explanation",
+      "Suggestion",
+    ]);
   }
 
-  // ======= Output =======
+  // ======= Footer: Page Numbers and Logos on All Pages =======
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    // Footer page number
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - 40, pageHeight - 10);
+
+    // Header logo on every page
+    doc.addImage(logoPath, "PNG", pageWidth - logoSize.width - 14, 10, logoSize.width, logoSize.height);
+  }
+
+  // ======= Output PDF =======
   if (returnBlob) {
     return doc.output("blob");
   } else {
