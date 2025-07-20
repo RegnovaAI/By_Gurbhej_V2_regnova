@@ -191,26 +191,24 @@
 
 
 
-
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export function generatePDFReport(filename, riskReport, returnBlob = false) {
   const doc = new jsPDF();
 
-  // Title
+  // ======= Cover Title =======
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.text("RegnovaAI Compliance Risk Report", 14, 20);
 
-  // File Info
+  // ======= File Info =======
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   doc.text(`File Audited: ${filename}`, 14, 28);
   doc.line(14, 30, 196, 30);
 
-  // Risk Summary
+  // ======= Risk Summary =======
   const counts = {
     High: riskReport.risks.filter((r) => r.risk_level === "High").length,
     Medium: riskReport.risks.filter((r) => r.risk_level === "Medium").length,
@@ -230,11 +228,18 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
   doc.setTextColor(0, 150, 0);
   doc.text(`Low: ${counts.Low}`, 110, 46);
 
-  // Unified clause label resolver
+  // ======= Helper =======
   const getClauseText = (item) =>
     item.issue || item.missing || item.redundant || "—";
 
-  // Main Risk Table
+  // ======= Risk Issues Section =======
+  doc.addPage();
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(40);
+  doc.text("Identified Risk Issues", 14, 20);
+  doc.line(14, 22, 196, 22);
+
   const tableData = riskReport.risks.map((item, i) => [
     i + 1,
     getClauseText(item),
@@ -244,7 +249,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
   ]);
 
   autoTable(doc, {
-    startY: 54,
+    startY: 26,
     head: [["#", "Issue", "Risk Level", "Explanation", "Suggestion"]],
     body: tableData,
     styles: {
@@ -266,8 +271,8 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     },
     margin: { left: 20, right: 20 },
     didParseCell: function (data) {
+      const risk = data.row.raw[2];
       if (data.section === "body") {
-        const risk = data.row.raw[2];
         if (risk === "High") {
           data.cell.styles.fillColor = [255, 230, 230];
         } else if (risk === "Medium") {
@@ -279,13 +284,14 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     },
   });
 
-  // ========== Missing Clauses Table ==========
-  if (riskReport.missing_clauses && riskReport.missing_clauses.length > 0) {
+  // ======= Missing Clauses Section =======
+  if (riskReport.missing_clauses?.length > 0) {
     doc.addPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
     doc.text("Missing Clauses", 14, 20);
+    doc.line(14, 22, 196, 22);
 
     const missingTableData = riskReport.missing_clauses.map((item, i) => [
       i + 1,
@@ -332,13 +338,14 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     });
   }
 
-  // ========== Redundant Clauses Table ==========
-  if (riskReport.redundant_clauses && riskReport.redundant_clauses.length > 0) {
+  // ======= Redundant Clauses Section =======
+  if (riskReport.redundant_clauses?.length > 0) {
     doc.addPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
     doc.text("Redundant Clauses", 14, 20);
+    doc.line(14, 22, 196, 22);
 
     const redundantTableData = riskReport.redundant_clauses.map((item, i) => [
       i + 1,
@@ -385,7 +392,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     });
   }
 
-  // Return or download
+  // ======= Output PDF =======
   if (returnBlob) {
     return doc.output("blob");
   } else {
