@@ -180,14 +180,3 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     doc.save(`${filename.replace(/\.[^/.]+$/, "")}-Audit-Report.pdf`);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
