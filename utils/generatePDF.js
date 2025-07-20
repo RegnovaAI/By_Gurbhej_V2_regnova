@@ -285,9 +285,17 @@ export async function generatePDFReport(filename, riskReport) {
       styles: {
         fontSize: 9,
         overflow: "linebreak",
-        cellPadding: 3,
-        valign: "top",
+        cellPadding: { top: 3, right: 3, bottom: 3, left: 3 },
+        valign: "middle", // ⬅️ align all cells to middle
       },
+      columnStyles: {
+        0: { cellWidth: 10, halign: "center", valign: "middle" }, // ⬅️ center-align the row number
+        1: { cellWidth: 40 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 55 },
+        4: { cellWidth: 55 },
+      },
+
       headStyles: {
         fillColor: [22, 78, 99],
         textColor: 255,
