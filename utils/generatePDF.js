@@ -479,7 +479,7 @@ export async function generatePDFReport(filename, riskReport) {
       styles: {
         fontSize: 9,
         overflow: "linebreak",
-        cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
+        cellPadding: { top: 4, right: 3, bottom: 4, left: 2 },
         valign: "middle",
       },
       headStyles: {
