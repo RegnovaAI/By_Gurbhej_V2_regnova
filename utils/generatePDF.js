@@ -354,7 +354,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
 // ===== Load local logo image and convert to base64 =====
-const logoPath = "C:/Users/Public/Projects/RegnovaAI/RegnovaAI_MVP/Images/regnovaai-logo.png"
+const logoPath = path.join(__dirname, "C:/Users/Public/Projects/RegnovaAI/RegnovaAI_MVP/Images", "regnovaai-logo.png");
 const logoImageBase64 = fs.readFileSync(logoPath).toString("base64");
 const logoDataUrl = `data:image/png;base64,${logoImageBase64}`;
 
