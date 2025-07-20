@@ -189,15 +189,13 @@
 
 
 
-
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export function generatePDFReport(filename, riskReport, returnBlob = false) {
   const doc = new jsPDF();
 
-  // ======= Cover Title =======
+  // ======= Title =======
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.text("RegnovaAI Compliance Risk Report", 14, 20);
@@ -217,41 +215,41 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
 
   doc.setFontSize(12);
   doc.setTextColor(40);
-  doc.text("Risk Summary:", 14, 38);
+  doc.text("Risk Summary:", 14, 42);  // shifted down from 38 → 42
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(200, 0, 0);
-  doc.text(`High: ${counts.High}`, 14, 46);
+  doc.text(`High: ${counts.High}`, 14, 50);
   doc.setTextColor(255, 140, 0);
-  doc.text(`Medium: ${counts.Medium}`, 50, 46);
+  doc.text(`Medium: ${counts.Medium}`, 50, 50);
   doc.setTextColor(0, 150, 0);
-  doc.text(`Low: ${counts.Low}`, 110, 46);
+  doc.text(`Low: ${counts.Low}`, 110, 50);
 
   // ======= Helper =======
   const getClauseText = (item) =>
     item.issue || item.missing || item.redundant || "—";
 
-  // ======= Risk Issues Section =======
-  doc.addPage();
+  let startY = 58;
+
+  // ======= Risk Issues Table =======
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(40);
-  doc.text("Identified Risk Issues", 14, 20);
-  doc.line(14, 22, 196, 22);
-
-  const tableData = riskReport.risks.map((item, i) => [
-    i + 1,
-    getClauseText(item),
-    item.risk_level,
-    item.explanation,
-    item.suggestion,
-  ]);
+  doc.text("Identified Risk Issues", 14, startY);
+  doc.line(14, startY + 2, 196, startY + 2);
+  startY += 6;
 
   autoTable(doc, {
-    startY: 26,
+    startY: startY,
     head: [["#", "Issue", "Risk Level", "Explanation", "Suggestion"]],
-    body: tableData,
+    body: riskReport.risks.map((item, i) => [
+      i + 1,
+      getClauseText(item),
+      item.risk_level,
+      item.explanation,
+      item.suggestion,
+    ]),
     styles: {
       fontSize: 9,
       overflow: "linebreak",
@@ -284,27 +282,27 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     },
   });
 
-  // ======= Missing Clauses Section =======
+  startY = doc.lastAutoTable.finalY + 12;
+
+  // ======= Missing Clauses Table =======
   if (riskReport.missing_clauses?.length > 0) {
-    doc.addPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
-    doc.text("Missing Clauses", 14, 20);
-    doc.line(14, 22, 196, 22);
-
-    const missingTableData = riskReport.missing_clauses.map((item, i) => [
-      i + 1,
-      getClauseText(item),
-      item.risk_level,
-      item.explanation,
-      item.suggestion,
-    ]);
+    doc.text("Missing Clauses", 14, startY);
+    doc.line(14, startY + 2, 196, startY + 2);
+    startY += 6;
 
     autoTable(doc, {
-      startY: 26,
+      startY: startY,
       head: [["#", "Missing Clause", "Risk Level", "Explanation", "Suggestion"]],
-      body: missingTableData,
+      body: riskReport.missing_clauses.map((item, i) => [
+        i + 1,
+        getClauseText(item),
+        item.risk_level,
+        item.explanation,
+        item.suggestion,
+      ]),
       styles: {
         fontSize: 9,
         overflow: "linebreak",
@@ -336,29 +334,29 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
         }
       },
     });
+
+    startY = doc.lastAutoTable.finalY + 12;
   }
 
-  // ======= Redundant Clauses Section =======
+  // ======= Redundant Clauses Table =======
   if (riskReport.redundant_clauses?.length > 0) {
-    doc.addPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
-    doc.text("Redundant Clauses", 14, 20);
-    doc.line(14, 22, 196, 22);
-
-    const redundantTableData = riskReport.redundant_clauses.map((item, i) => [
-      i + 1,
-      getClauseText(item),
-      item.risk_level,
-      item.explanation,
-      item.suggestion,
-    ]);
+    doc.text("Redundant Clauses", 14, startY);
+    doc.line(14, startY + 2, 196, startY + 2);
+    startY += 6;
 
     autoTable(doc, {
-      startY: 26,
+      startY: startY,
       head: [["#", "Redundant Clause", "Risk Level", "Explanation", "Suggestion"]],
-      body: redundantTableData,
+      body: riskReport.redundant_clauses.map((item, i) => [
+        i + 1,
+        getClauseText(item),
+        item.risk_level,
+        item.explanation,
+        item.suggestion,
+      ]),
       styles: {
         fontSize: 9,
         overflow: "linebreak",
@@ -392,7 +390,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     });
   }
 
-  // ======= Output PDF =======
+  // ======= Output =======
   if (returnBlob) {
     return doc.output("blob");
   } else {
