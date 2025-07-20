@@ -829,6 +829,13 @@ export default function Dashboard() {
                     Create Project
                   </button>
                 </div>
+                
+                {/* Contact note */}
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-700 text-sm text-center font-medium">
+                    💡 To add new policy, please contact us!
+                  </p>
+                </div>
               </div>
             </form>
           </div>
