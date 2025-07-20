@@ -193,8 +193,6 @@
 
 
 
-
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -232,7 +230,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
   doc.setTextColor(0, 150, 0);
   doc.text(`Low: ${counts.Low}`, 110, 46);
 
-  // Helper: Unified clause title
+  // Unified clause label resolver
   const getClauseText = (item) =>
     item.issue || item.missing || item.redundant || "—";
 
@@ -281,13 +279,13 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     },
   });
 
-  // === Missing Clauses Table ===
+  // ========== Missing Clauses Table ==========
   if (riskReport.missing_clauses && riskReport.missing_clauses.length > 0) {
-    doc.addPage(); 
+    doc.addPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
-    doc.text("Missing Clauses", 14, doc.lastAutoTable.finalY + 6);
+    doc.text("Missing Clauses", 14, 20);
 
     const missingTableData = riskReport.missing_clauses.map((item, i) => [
       i + 1,
@@ -298,7 +296,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     ]);
 
     autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
+      startY: 26,
       head: [["#", "Missing Clause", "Risk Level", "Explanation", "Suggestion"]],
       body: missingTableData,
       styles: {
@@ -320,8 +318,8 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
       },
       margin: { left: 20, right: 20 },
       didParseCell: function (data) {
+        const risk = data.row.raw[2];
         if (data.section === "body") {
-          const risk = data.row.raw[2];
           if (risk === "High") {
             data.cell.styles.fillColor = [255, 230, 230];
           } else if (risk === "Medium") {
@@ -334,13 +332,13 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     });
   }
 
-  // === Redundant Clauses Table ===
+  // ========== Redundant Clauses Table ==========
   if (riskReport.redundant_clauses && riskReport.redundant_clauses.length > 0) {
-    doc.addPage(); 
+    doc.addPage();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
-    doc.text("Redundant Clauses", 14, doc.lastAutoTable.finalY + 6);
+    doc.text("Redundant Clauses", 14, 20);
 
     const redundantTableData = riskReport.redundant_clauses.map((item, i) => [
       i + 1,
@@ -351,7 +349,7 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
     ]);
 
     autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
+      startY: 26,
       head: [["#", "Redundant Clause", "Risk Level", "Explanation", "Suggestion"]],
       body: redundantTableData,
       styles: {
@@ -373,8 +371,8 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
       },
       margin: { left: 20, right: 20 },
       didParseCell: function (data) {
+        const risk = data.row.raw[2];
         if (data.section === "body") {
-          const risk = data.row.raw[2];
           if (risk === "High") {
             data.cell.styles.fillColor = [255, 230, 230];
           } else if (risk === "Medium") {
