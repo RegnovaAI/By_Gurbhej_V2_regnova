@@ -195,6 +195,8 @@
 
 
 
+
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -283,7 +285,6 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
 
   // === Missing Clauses Table ===
   if (riskReport.missing_clauses && riskReport.missing_clauses.length > 0) {
-    doc.addPage(); 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
@@ -336,7 +337,6 @@ export function generatePDFReport(filename, riskReport, returnBlob = false) {
 
   // === Redundant Clauses Table ===
   if (riskReport.redundant_clauses && riskReport.redundant_clauses.length > 0) {
-    doc.addPage(); 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(40);
