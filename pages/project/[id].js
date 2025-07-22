@@ -367,8 +367,22 @@ export default function ProjectDetails() {
                 open
               >
                 <summary className="flex items-center justify-between cursor-pointer p-4 text-lg font-medium text-white hover:bg-gray-700 transition-colors rounded-lg">
-                  <span>{audit.name}</span>
-                  <ChevronDownIcon className="h-5 w-5 text-gray-400 group-open:rotate-180 transform transition-transform" />
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="font-semibold">{audit.name}</span>
+                    {audit.scopes && audit.scopes.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {audit.scopes.map((scope, index) => (
+                          <span 
+                            key={index}
+                            className="inline-flex items-center text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1 rounded-full shadow-sm border border-blue-400/20"
+                          >
+                            {scope}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <ChevronDownIcon className="h-5 w-5 text-gray-400 group-open:rotate-180 transform transition-transform flex-shrink-0" />
                 </summary>
 
                 <div className="border-t border-gray-700 px-4 pb-4">
