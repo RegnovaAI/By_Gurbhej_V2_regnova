@@ -7,6 +7,9 @@ import Link from "next/link";
 import { BASE_URL } from "@/utils/api_constants";
 import { toast, Toaster } from "react-hot-toast"; // <-- Add Toaster import
 import ProfileImage from "@/components/ProfileImage";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import { generatePDFReport } from "@/utils/generatePDF";
 
 function formatDate(dateString) {
   if (!dateString) return "";
@@ -19,6 +22,32 @@ function formatDate(dateString) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+// Download helper - same as in [id].js
+async function downloadReportsAsPdfOrZip(results) {
+  if (!results || results.length === 0) return;
+  if (results.length === 1) {
+    const { filename, risk_report } = results[0];
+    generatePDFReport(filename, risk_report);
+    return;
+  }
+  const zip = new JSZip();
+  for (const item of results) {
+    const { filename, risk_report } = item;
+    try {
+      const blob = await generatePDFReport(filename, risk_report, true); // returnBlob = true
+      const pdfFilename = `${filename.replace(
+        /\.[^/.]+$/,
+        ""
+      )}-Audit-Report.pdf`;
+      zip.file(pdfFilename, blob);
+    } catch (e) {
+      console.error("PDF generation failed for:", filename, e);
+    }
+  }
+  const content = await zip.generateAsync({ type: "blob" });
+  saveAs(content, "RegnovaAI-Risk-Reports.zip");
 }
 
 export default function Dashboard() {
@@ -35,6 +64,7 @@ export default function Dashboard() {
   // Project state
   const [projects, setProjects] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
+  const [error, setError] = useState(null); // New state for error message
 
   // Modal & form state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,6 +89,13 @@ export default function Dashboard() {
   const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
   const [editProjectData, setEditProjectData] = useState(null);
 
+  // Add at the top of the Dashboard component:
+  const [expandedProjectId, setExpandedProjectId] = useState(null);
+  const [selectedAuditTypeByProject, setSelectedAuditTypeByProject] = useState(
+    {}
+  );
+  const [uploadAuditTypeOptions, setUploadAuditTypeOptions] = useState([]);
+
   // Fetch user and projects on mount
   useEffect(() => {
     async function fetchUser() {
@@ -82,7 +119,14 @@ export default function Dashboard() {
         const res = await fetch(`${BASE_URL}/projects`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error("Failed to fetch projects");
+        if (!res.ok) {
+          setProjects([]);
+          setProjectsLoading(false);
+          setError(
+            "Something went wrong while loading projects. Please try again."
+          );
+          return;
+        }
         const data = await res.json();
         setProjects(Array.isArray(data) ? data : data.projects || []);
       } catch (err) {
@@ -113,12 +157,12 @@ export default function Dashboard() {
     setSelectedAuditTypes((prevSelected) => {
       const isCurrentlySelected = prevSelected.includes(auditType);
       let newSelected;
-      
+
       if (isCurrentlySelected) {
         // Remove the audit type
         newSelected = prevSelected.filter((type) => type !== auditType);
         // Clear scopes for this audit type
-        setSelectedScopes(prev => {
+        setSelectedScopes((prev) => {
           const newScopes = { ...prev };
           delete newScopes[auditType];
           return newScopes;
@@ -127,7 +171,7 @@ export default function Dashboard() {
         // Add the audit type
         newSelected = [...prevSelected, auditType];
       }
-      
+
       return newSelected;
     });
     setErrorText("");
@@ -140,15 +184,15 @@ export default function Dashboard() {
 
   // Handle scope selection
   const toggleScope = (auditType, scope) => {
-    setSelectedScopes(prev => {
+    setSelectedScopes((prev) => {
       const currentScopes = prev[auditType] || [];
       const isSelected = currentScopes.includes(scope);
-      
+
       return {
         ...prev,
         [auditType]: isSelected
-          ? currentScopes.filter(s => s !== scope)
-          : [...currentScopes, scope]
+          ? currentScopes.filter((s) => s !== scope)
+          : [...currentScopes, scope],
       };
     });
   };
@@ -176,13 +220,19 @@ export default function Dashboard() {
     }
 
     // Check if required scopes are selected for audit types that need them
-    const auditTypesWithScopes = selectedAuditTypes.filter(type => scopeOptions[type]);
-    const missingScopeAuditTypes = auditTypesWithScopes.filter(type => 
-      !selectedScopes[type] || selectedScopes[type].length === 0
+    const auditTypesWithScopes = selectedAuditTypes.filter(
+      (type) => scopeOptions[type]
     );
-    
+    const missingScopeAuditTypes = auditTypesWithScopes.filter(
+      (type) => !selectedScopes[type] || selectedScopes[type].length === 0
+    );
+
     if (missingScopeAuditTypes.length > 0) {
-      setErrorText(`Please select at least one scope for: ${missingScopeAuditTypes.join(', ')}`);
+      setErrorText(
+        `Please select at least one scope for: ${missingScopeAuditTypes.join(
+          ", "
+        )}`
+      );
       return;
     }
 
@@ -190,19 +240,19 @@ export default function Dashboard() {
     const form = new FormData();
     form.append("name", formData.name);
     selectedAuditTypes.forEach((type) => form.append("audittypes", type));
-    
+
     // Add scope data to form - send as JSON for nested structure
     const scopeData = {};
-    Object.keys(selectedScopes).forEach(auditType => {
+    Object.keys(selectedScopes).forEach((auditType) => {
       if (selectedScopes[auditType] && selectedScopes[auditType].length > 0) {
         scopeData[auditType] = selectedScopes[auditType];
       }
     });
-    
+
     if (Object.keys(scopeData).length > 0) {
       form.append("scopes", JSON.stringify(scopeData));
     }
-    
+
     selectedFile.forEach((file) => form.append("files", file));
 
     try {
@@ -292,6 +342,9 @@ export default function Dashboard() {
   });
 
   // --- Upload Docs Modal Dropzone ---
+  // Add a new state to track the selected audit type for upload
+  const [uploadAuditType, setUploadAuditType] = useState(null);
+
   const onUploadDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       setUploadFiles((prev) => {
@@ -355,23 +408,49 @@ export default function Dashboard() {
       toast.error("Please select files to upload.");
       return;
     }
+    if (!projectToUpload || !uploadAuditType) {
+      toast.error("No project or audit type selected.");
+      return;
+    }
     try {
       const token = localStorage.getItem("rg-token");
       const form = new FormData();
-      uploadFiles.forEach((file) => form.append("files", file)); // <-- key must be "files"
+      uploadFiles.forEach((file) => form.append("files", file));
       const res = await fetch(
-        `${BASE_URL}/project/${projectToUpload.id}/upload-files`, // <-- match your FastAPI route
+        `${BASE_URL}/project/${projectToUpload.id}/audit/${uploadAuditType}/upload`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: form,
         }
       );
-      if (!res.ok) throw new Error("Failed to upload documents");
+      if (!res.ok) {
+        // Try to parse error message
+        let errMsg = "Failed to upload documents";
+        try {
+          const errData = await res.json();
+          if (Array.isArray(errData.detail)) {
+            errMsg = errData.detail
+              .map((e) => e.msg || JSON.stringify(e))
+              .join(", ");
+          } else if (typeof errData.detail === "object") {
+            errMsg = errData.detail.msg || JSON.stringify(errData.detail);
+          } else if (errData.detail) {
+            errMsg = errData.detail;
+          }
+        } catch {}
+        toast.error(errMsg);
+        setIsUploadModalOpen(false);
+        setUploadFiles([]);
+        setProjectToUpload(null);
+        setUploadAuditType(null);
+        return;
+      }
       toast.success("Documents uploaded successfully!");
       setIsUploadModalOpen(false);
       setUploadFiles([]);
       setProjectToUpload(null);
+      setUploadAuditType(null);
     } catch (err) {
       toast.error(err.message || "Failed to upload documents");
     }
@@ -382,22 +461,26 @@ export default function Dashboard() {
     // Transform the project data to match expected structure
     const transformedProject = {
       ...project,
-      audittypes: project.audittypes?.map(at => at.name) || []
+      audittypes: project.audittypes?.map((at) => at.name) || [],
     };
-    
+
     setEditProjectData(transformedProject);
-    
+
     // Initialize scopes for edit mode
     const projectScopes = {};
     if (project.audittypes && Array.isArray(project.audittypes)) {
-      project.audittypes.forEach(auditTypeObj => {
-        if (auditTypeObj.name && auditTypeObj.scopes && Array.isArray(auditTypeObj.scopes)) {
+      project.audittypes.forEach((auditTypeObj) => {
+        if (
+          auditTypeObj.name &&
+          auditTypeObj.scopes &&
+          Array.isArray(auditTypeObj.scopes)
+        ) {
           projectScopes[auditTypeObj.name] = auditTypeObj.scopes;
         }
       });
     }
     setSelectedScopes(projectScopes);
-    
+
     setIsEditProjectOpen(true);
   };
 
@@ -407,13 +490,19 @@ export default function Dashboard() {
     if (!editProjectData?.name) return;
 
     // Check if required scopes are selected for audit types that need them
-    const auditTypesWithScopes = (editProjectData?.audittypes || []).filter(type => scopeOptions[type]);
-    const missingScopeAuditTypes = auditTypesWithScopes.filter(type => 
-      !selectedScopes[type] || selectedScopes[type].length === 0
+    const auditTypesWithScopes = (editProjectData?.audittypes || []).filter(
+      (type) => scopeOptions[type]
     );
-    
+    const missingScopeAuditTypes = auditTypesWithScopes.filter(
+      (type) => !selectedScopes[type] || selectedScopes[type].length === 0
+    );
+
     if (missingScopeAuditTypes.length > 0) {
-      toast.error(`Please select at least one scope for: ${missingScopeAuditTypes.join(', ')}`);
+      toast.error(
+        `Please select at least one scope for: ${missingScopeAuditTypes.join(
+          ", "
+        )}`
+      );
       return;
     }
 
@@ -426,12 +515,12 @@ export default function Dashboard() {
 
     // Add scope data to form - send as JSON for nested structure
     const scopeData = {};
-    Object.keys(selectedScopes).forEach(auditType => {
+    Object.keys(selectedScopes).forEach((auditType) => {
       if (selectedScopes[auditType] && selectedScopes[auditType].length > 0) {
         scopeData[auditType] = selectedScopes[auditType];
       }
     });
-    
+
     if (Object.keys(scopeData).length > 0) {
       formData.append("scopes", JSON.stringify(scopeData));
     }
@@ -453,7 +542,7 @@ export default function Dashboard() {
         toast.success("Project updated successfully");
         setIsEditProjectOpen(false);
         setSelectedScopes({}); // Clear scopes
-        
+
         // Refresh projects list
         setProjectsLoading(true);
         const projectsRes = await fetch(`${BASE_URL}/projects`, {
@@ -461,7 +550,9 @@ export default function Dashboard() {
         });
         const projectsData = await projectsRes.json();
         setProjects(
-          Array.isArray(projectsData) ? projectsData : projectsData.projects || []
+          Array.isArray(projectsData)
+            ? projectsData
+            : projectsData.projects || []
         );
         setProjectsLoading(false);
       } else {
@@ -473,12 +564,80 @@ export default function Dashboard() {
     }
   };
 
+  // --- New: Run and Download, Delete functions ---
+  const handleDownloadReport = async (projectId, auditTypeId) => {
+    if (!auditTypeId) {
+      toast.error("Please select an audit type.");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("rg-token");
+      const response = await fetch(
+        `${BASE_URL}/project/${projectId}/audit/${auditTypeId}/risk-report`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch risk report");
+      const data = await response.json();
+      await downloadReportsAsPdfOrZip(data.results);
+      toast.success("Risk report downloaded!");
+    } catch (error) {
+      toast.error(error?.message || "Download failed.");
+    }
+  };
+
+  const handleDeleteAuditType = async (projectId, auditTypeId) => {
+    if (!auditTypeId) {
+      toast.error("Please select an audit type.");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("rg-token");
+      const res = await fetch(
+        `${BASE_URL}/project/${projectId}/audit/${auditTypeId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!res.ok) throw new Error("Failed to delete audit type");
+      toast.success("Audit deleted successfully!");
+      // Refresh project list after deletion
+      setProjectsLoading(true);
+      const projectsRes = await fetch(`${BASE_URL}/projects`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const projectsData = await projectsRes.json();
+      setProjects(
+        Array.isArray(projectsData) ? projectsData : projectsData.projects || []
+      );
+      setProjectsLoading(false);
+    } catch (err) {
+      toast.error(err?.message || "Failed to delete audit type");
+    }
+  };
+
   // Loader and empty view for projects
   const renderProjects = () => {
     if (projectsLoading) {
       return (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="animate-spin w-8 h-8 text-gray-400" />
+        </div>
+      );
+    }
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+          <p className="mb-4 text-lg">{error}</p>
+          <button
+            onClick={() => setProjectsLoading(true)}
+            className="px-4 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-500 transition-colors cursor-pointer"
+          >
+            Retry
+          </button>
         </div>
       );
     }
@@ -495,68 +654,86 @@ export default function Dashboard() {
         </div>
       );
     }
-    return projects.map((project, index) => (
-      <div
-        key={project.id || index}
-        className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <Link href={`/project/${project.id}`}>
-                  <h3 className="text-xl underline font-semibold mb-1">
+    return projects.map((project, index) => {
+      const auditTypesForProject = project.audittypes || [];
+      const auditTypeOptions = Array.isArray(auditTypesForProject)
+        ? auditTypesForProject
+        : [];
+      const selectedAuditType =
+        selectedAuditTypeByProject[project.id] ??
+        (auditTypeOptions[0] && auditTypeOptions[0].id) ??
+        "";
+      const selectedAuditTypeObj = auditTypeOptions.find(
+        (opt) => String(opt.id) === String(selectedAuditType)
+      );
+      return (
+        <div
+          key={project.id || index}
+          className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors mb-2 cursor-pointer"
+          onClick={() => {
+            setExpandedProjectId(
+              expandedProjectId === project.id ? null : project.id
+            );
+            // Optionally auto-select the first audit type when opening
+            if (expandedProjectId !== project.id) {
+              const firstAuditTypeId =
+                (project.audittypes &&
+                  project.audittypes[0] &&
+                  project.audittypes[0].id) ||
+                "";
+              setSelectedAuditTypeByProject((prev) => ({
+                ...prev,
+                [project.id]: firstAuditTypeId,
+              }));
+            }
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-start justify-between">
+                <div>
+                  <button
+                    className="text-xl underline font-semibold mb-1 text-left focus:outline-none"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      color: "#60a5fa",
+                      cursor: "pointer",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {project.name}
-                  </h3>
-                </Link>
-                <div className="text-gray-400 text-sm mb-3">
-                  Created on{" "}
-                  {formatDate(project.createdDate || project.created_at)}
-                </div>
-                <div className="flex space-x-4">
-                  {/* <Link
-                    href={{
-                      pathname: "/audit-view",
-                      query: {
-                        projectId: project.id
-                      },
-                    }}
-                  >
-                    <button className="text-blue-400 hover:text-blue-300 text-sm cursor-pointer">
-                      RegnovaPilot<sup>TM</sup>
+                  </button>
+                  <div className="text-gray-400 text-sm mb-3">
+                    Created on{" "}
+                    {formatDate(project.createdDate || project.created_at)}
+                  </div>
+                  <div className="flex space-x-4">
+                    <button
+                      className="text-yellow-400 hover:text-yellow-300 text-sm cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditProjectModal(project);
+                      }}
+                    >
+                      Edit
                     </button>
-                  </Link> */}
-                  {/* <button
-                    className="text-blue-400 hover:text-blue-300 text-sm cursor-pointer"
-                    onClick={() => {
-                      setIsUploadModalOpen(true);
-                      setProjectToUpload(project);
-                      setUploadFiles([]);
-                    }}
-                  >
-                    Upload Docs
-                  </button> */}
-                  <button
-                    className="text-yellow-400 hover:text-yellow-300 text-sm cursor-pointer"
-                    onClick={() => openEditProjectModal(project)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-400 hover:text-red-300 text-sm cursor-pointer"
-                    onClick={() => {
-                      setIsDeleteModalOpen(true);
-                      setProjectToDelete(project);
-                    }}
-                  >
-                    Delete
-                  </button>
+                    <button
+                      className="text-red-400 hover:text-red-300 text-sm cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDeleteModalOpen(true);
+                        setProjectToDelete(project);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="flex space-x-12">
-                <div className="flex items-center space-x-2">
-                  <div>
-                    <Link href={`/project/${project.id}`}>
+                <div className="flex space-x-12">
+                  <div className="flex items-center space-x-2">
+                    <div>
                       <div
                         className={`font-medium mb-1 ${
                           project.statusColor || "text-blue-400"
@@ -567,18 +744,102 @@ export default function Dashboard() {
                       <div className="text-gray-400 text-sm cursor-pointer">
                         {project.status || "In Progress"}
                       </div>
-                    </Link>
+                    </div>
                   </div>
-                  <Link href={`/project/${project.id}`}>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </Link>
                 </div>
               </div>
             </div>
           </div>
+          {/* Accordion content */}
+          {expandedProjectId === project.id && (
+            <div
+              className="mt-4 bg-gray-900 rounded-lg p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <select
+                  className="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none"
+                  value={selectedAuditType}
+                  onChange={(e) =>
+                    setSelectedAuditTypeByProject((prev) => ({
+                      ...prev,
+                      [project.id]: e.target.value,
+                    }))
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {auditTypeOptions.length === 0 && (
+                    <option value="">No Audit Types</option>
+                  )}
+                  {auditTypeOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-semibold"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsUploadModalOpen(true);
+                    setProjectToUpload(project);
+                    setUploadAuditType(selectedAuditType); // <-- this is now the ID
+                    const auditTypesForProject = project.audittypes || [];
+                    const auditTypeOptions = Array.isArray(auditTypesForProject)
+                      ? auditTypesForProject
+                      : [];
+                    setUploadAuditTypeOptions(auditTypeOptions);
+                  }}
+                >
+                  Upload Document
+                </button>
+                {/* --- UPDATED BUTTONS! --- */}
+                <button
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadReport(project.id, selectedAuditType);
+                  }}
+                  disabled={!selectedAuditType}
+                >
+                  Run and Download Report
+                </button>
+                <button
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-semibold"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteAuditType(project.id, selectedAuditType);
+                  }}
+                  disabled={!selectedAuditType}
+                >
+                  Delete
+                </button>
+              </div>
+              {/* --- SCOPES AS BADGES --- */}
+              {selectedAuditTypeObj &&
+                Array.isArray(selectedAuditTypeObj.scopes) &&
+                selectedAuditTypeObj.scopes.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {selectedAuditTypeObj.scopes.map((scope) => (
+                      <span
+                        key={scope}
+                        className="px-4 py-1 rounded-full font-medium text-white text-sm"
+                        style={{
+                          background:
+                            "linear-gradient(90deg, #5f98ff 0%, #a845ff 100%)",
+                          boxShadow: "0 1px 4px 0 rgba(60,35,140,0.12)",
+                        }}
+                      >
+                        {scope}
+                      </span>
+                    ))}
+                  </div>
+                )}
+            </div>
+          )}
         </div>
-      </div>
-    ));
+      );
+    });
   };
 
   return (
@@ -741,34 +1002,38 @@ export default function Dashboard() {
                 </div>
 
                 {/* Scope Selection */}
-                {selectedAuditTypes.some(type => scopeOptions[type]) && (
+                {selectedAuditTypes.some((type) => scopeOptions[type]) && (
                   <div className="mb-8">
                     <h3 className="mb-5 text-3xl font-semibold text-white-200">
                       Select Scopes
                     </h3>
                     {selectedAuditTypes
-                      .filter(type => scopeOptions[type])
-                      .map(auditType => (
+                      .filter((type) => scopeOptions[type])
+                      .map((auditType) => (
                         <div key={auditType} className="mb-6">
                           <h4 className="mb-3 text-xl font-semibold text-blue-400">
                             {auditType} Scopes
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                            {scopeOptions[auditType].map(scope => {
-                              const isSelected = selectedScopes[auditType]?.includes(scope) || false;
+                            {scopeOptions[auditType].map((scope) => {
+                              const isSelected =
+                                selectedScopes[auditType]?.includes(scope) ||
+                                false;
                               return (
                                 <label
                                   key={scope}
                                   className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm ${
-                                    isSelected 
-                                      ? 'bg-blue-600 border-blue-400' 
-                                      : 'bg-[#192447] border-[#2e3a5e] hover:border-blue-400'
+                                    isSelected
+                                      ? "bg-blue-600 border-blue-400"
+                                      : "bg-[#192447] border-[#2e3a5e] hover:border-blue-400"
                                   }`}
                                 >
                                   <input
                                     type="checkbox"
                                     checked={isSelected}
-                                    onChange={() => toggleScope(auditType, scope)}
+                                    onChange={() =>
+                                      toggleScope(auditType, scope)
+                                    }
                                     className="form-checkbox w-4 h-4 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
                                   />
                                   <span className="text-white font-medium">
@@ -779,8 +1044,7 @@ export default function Dashboard() {
                             })}
                           </div>
                         </div>
-                      ))
-                    }
+                      ))}
                   </div>
                 )}
                 {errorText && (
@@ -829,7 +1093,7 @@ export default function Dashboard() {
                     Create Project
                   </button>
                 </div>
-                
+
                 {/* Contact note */}
                 <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <p className="text-green-700 text-sm text-center font-medium">
@@ -970,6 +1234,11 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold text-white mb-4">
               Upload Documents
             </h2>
+            <div className="mb-2 text-white text-sm">
+              <span className="font-semibold">Audit Type:</span>{" "}
+              {uploadAuditTypeOptions.find((opt) => opt.id === uploadAuditType)
+                ?.name || uploadAuditType}
+            </div>
             <form onSubmit={handleUploadDocs}>
               {uploadFiles && uploadFiles.length > 0 && (
                 <div className="my-6">
@@ -1095,16 +1364,16 @@ export default function Dashboard() {
                               const newTypes = prevTypes.includes(auditType)
                                 ? prevTypes.filter((type) => type !== auditType)
                                 : [...prevTypes, auditType];
-                              
+
                               // Clear scopes when deselecting audit type
                               if (prevTypes.includes(auditType)) {
-                                setSelectedScopes(prevScopes => {
+                                setSelectedScopes((prevScopes) => {
                                   const newScopes = { ...prevScopes };
                                   delete newScopes[auditType];
                                   return newScopes;
                                 });
                               }
-                              
+
                               return {
                                 ...prev,
                                 audittypes: newTypes,
@@ -1122,34 +1391,40 @@ export default function Dashboard() {
                 </div>
 
                 {/* Scope Selection for Edit Project */}
-                {(editProjectData?.audittypes || []).some(type => scopeOptions[type]) && (
+                {(editProjectData?.audittypes || []).some(
+                  (type) => scopeOptions[type]
+                ) && (
                   <div className="mb-8">
                     <h3 className="mb-5 text-3xl font-semibold text-white-200">
                       Select Scopes
                     </h3>
                     {(editProjectData?.audittypes || [])
-                      .filter(type => scopeOptions[type])
-                      .map(auditType => (
+                      .filter((type) => scopeOptions[type])
+                      .map((auditType) => (
                         <div key={auditType} className="mb-6">
                           <h4 className="mb-3 text-xl font-semibold text-blue-400">
                             {auditType} Scopes
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                            {scopeOptions[auditType].map(scope => {
-                              const isSelected = selectedScopes[auditType]?.includes(scope) || false;
+                            {scopeOptions[auditType].map((scope) => {
+                              const isSelected =
+                                selectedScopes[auditType]?.includes(scope) ||
+                                false;
                               return (
                                 <label
                                   key={scope}
                                   className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm ${
-                                    isSelected 
-                                      ? 'bg-blue-600 border-blue-400' 
-                                      : 'bg-[#192447] border-[#2e3a5e] hover:border-blue-400'
+                                    isSelected
+                                      ? "bg-blue-600 border-blue-400"
+                                      : "bg-[#192447] border-[#2e3a5e] hover:border-blue-400"
                                   }`}
                                 >
                                   <input
                                     type="checkbox"
                                     checked={isSelected}
-                                    onChange={() => toggleScope(auditType, scope)}
+                                    onChange={() =>
+                                      toggleScope(auditType, scope)
+                                    }
                                     className="form-checkbox w-4 h-4 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
                                   />
                                   <span className="text-white font-medium">
@@ -1160,8 +1435,7 @@ export default function Dashboard() {
                             })}
                           </div>
                         </div>
-                      ))
-                    }
+                      ))}
                   </div>
                 )}
                 {/* File upload section for Edit Project */}

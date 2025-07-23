@@ -62,10 +62,8 @@ export default function ProjectDetails() {
 
   // Handle scope selection
   const toggleScope = (scope) => {
-    setSelectedScopes(prev => 
-      prev.includes(scope) 
-        ? prev.filter(s => s !== scope)
-        : [...prev, scope]
+    setSelectedScopes((prev) =>
+      prev.includes(scope) ? prev.filter((s) => s !== scope) : [...prev, scope]
     );
   };
 
@@ -158,7 +156,6 @@ export default function ProjectDetails() {
         }
       );
 
-      
       if (!res.ok) {
         // Handle specific 400 error for duplicate files
         if (res.status === 400) {
@@ -173,7 +170,7 @@ export default function ProjectDetails() {
         }
         throw new Error("Failed to upload documents");
       }
-      
+
       toast.success("Documents uploaded successfully!");
       setIsUploadModalOpen(false);
       setUploadFiles([]);
@@ -230,10 +227,10 @@ export default function ProjectDetails() {
         }
       );
       if (!response.ok) console.log("Failed to fetch risk report");
-      
+
       const data = await response.json(); // expect { results: [...], dna_score: 87 }
-      
-      if(data?.warning) {
+
+      if (data?.warning) {
         setWarningMsg(data?.warning);
         return;
       }
@@ -268,7 +265,7 @@ export default function ProjectDetails() {
       const token = localStorage.getItem("rg-token");
       const formData = new FormData();
       formData.append("audit_type_name", auditTypeName);
-      
+
       // Add scope data if scopes are selected
       if (selectedScopes.length > 0) {
         formData.append("scopes", JSON.stringify(selectedScopes));
@@ -299,11 +296,14 @@ export default function ProjectDetails() {
   };
 
   return (
-    <div className="flex bg-gray-900 text-white w-screen h-screen overflow-hidden"  style={{
+    <div
+      className="flex bg-gray-900 text-white w-screen h-screen overflow-hidden"
+      style={{
         backgroundImage: "url(/bg-hero.png)",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
-      }}>
+      }}
+    >
       <div className="hidden md:flex h-full">
         <Sidebar />
       </div>
@@ -367,22 +367,8 @@ export default function ProjectDetails() {
                 open
               >
                 <summary className="flex items-center justify-between cursor-pointer p-4 text-lg font-medium text-white hover:bg-gray-700 transition-colors rounded-lg">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="font-semibold">{audit.name}</span>
-                    {audit.scopes && audit.scopes.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {audit.scopes.map((scope, index) => (
-                          <span 
-                            key={index}
-                            className="inline-flex items-center text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1 rounded-full shadow-sm border border-blue-400/20"
-                          >
-                            {scope}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <ChevronDownIcon className="h-5 w-5 text-gray-400 group-open:rotate-180 transform transition-transform flex-shrink-0" />
+                  <span>{audit.name}</span>
+                  <ChevronDownIcon className="h-5 w-5 text-gray-400 group-open:rotate-180 transform transition-transform" />
                 </summary>
 
                 <div className="border-t border-gray-700 px-4 pb-4">
@@ -573,13 +559,13 @@ export default function ProjectDetails() {
                     Select Scopes for {auditTypeName}
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
-                    {scopeOptions[auditTypeName].map(scope => (
+                    {scopeOptions[auditTypeName].map((scope) => (
                       <label
                         key={scope}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm border ${
                           selectedScopes.includes(scope)
-                            ? 'bg-blue-600 border-blue-400' 
-                            : 'bg-[#192447] border-[#2e3a5e] hover:border-blue-400'
+                            ? "bg-blue-600 border-blue-400"
+                            : "bg-[#192447] border-[#2e3a5e] hover:border-blue-400"
                         }`}
                       >
                         <input
@@ -589,9 +575,7 @@ export default function ProjectDetails() {
                           className="form-checkbox w-4 h-4 accent-blue-500 border-gray-300 rounded focus:ring-blue-500"
                           disabled={addAuditLoading}
                         />
-                        <span className="text-white font-medium">
-                          {scope}
-                        </span>
+                        <span className="text-white font-medium">{scope}</span>
                       </label>
                     ))}
                   </div>
@@ -636,8 +620,18 @@ export default function ProjectDetails() {
         <div className="fixed inset-0 bg-black/40 bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="flex items-center mb-4">
-              <svg className="w-6 h-6 text-yellow-500 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z" />
+              <svg
+                className="w-6 h-6 text-yellow-500 mr-2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
+                />
               </svg>
               <span className="font-bold text-lg">Warning</span>
             </div>
@@ -651,9 +645,9 @@ export default function ProjectDetails() {
           </div>
         </div>
       )}
-      
+
       {/* Toast notifications with high z-index */}
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           style: {
